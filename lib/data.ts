@@ -1251,18 +1251,18 @@ We also provide helpful resources such as order tracking, product guides, and FA
         pageSize: 9,
       },
       site: {
-        name: 'NxtAmzn',
+        name: 'Collections Online Shop',
         description:
-          'NxtAmzn is a sample Ecommerce website built with Next.js, Tailwind CSS, and MongoDB.',
+          'Collections Online Shop is a sample Ecommerce website built with Next.js, Tailwind CSS, and MongoDB.',
         keywords: 'Next Ecommerce, Next.js, Tailwind CSS, MongoDB',
         url: 'https://next-mongo-ecommerce-final.vercel.app',
         logo: '/icons/logo.svg',
         slogan: 'Spend less, enjoy more.',
         author: 'Next Ecommerce',
         copyright: '2000-2024, Next-Ecommerce.com, Inc. or its affiliates',
-        email: 'admin@example.com',
-        address: '123, Main Street, Anytown, CA, Zip 12345',
-        phone: '+1 (123) 456-7890',
+        email: 'chayhangs@gmail.com',
+        address: '#529, 18MC Street, Stoeung Meanchey, PP, Zip 12000',
+        phone: '+(855) 15-366-377',
       },
       carousels: [
         {
