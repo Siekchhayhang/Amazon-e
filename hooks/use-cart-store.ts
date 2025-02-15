@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-import { Cart, OrderItem, ShippingAddress } from '@/types'
 import { calcDeliveryDateAndPrice } from '@/lib/actions/order.actions'
+import { Cart, OrderItem, ShippingAddress } from '@/types'
 
 const initialState: Cart = {
   items: [],
@@ -52,12 +52,12 @@ const useCartStore = create(
 
         const updatedCartItems = existItem
           ? items.map((x) =>
-              x.product === item.product &&
+            x.product === item.product &&
               x.color === item.color &&
               x.size === item.size
-                ? { ...existItem, quantity: existItem.quantity + quantity }
-                : x
-            )
+              ? { ...existItem, quantity: existItem.quantity + quantity }
+              : x
+          )
           : [...items, { ...item, quantity }]
 
         set({
@@ -92,8 +92,8 @@ const useCartStore = create(
         if (!exist) return
         const updatedCartItems = items.map((x) =>
           x.product === item.product &&
-          x.color === item.color &&
-          x.size === item.size
+            x.color === item.color &&
+            x.size === item.size
             ? { ...exist, quantity: quantity }
             : x
         )

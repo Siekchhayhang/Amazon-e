@@ -6,12 +6,12 @@ import { z } from 'zod'
 
 import { auth } from '@/auth'
 
+import { IReviewDetails } from '@/types'
 import { connectToDatabase } from '../db'
 import Product from '../db/models/product.model'
 import Review, { IReview } from '../db/models/review.model'
 import { formatError } from '../utils'
 import { ReviewInputSchema } from '../validator'
-import { IReviewDetails } from '@/types'
 import { getSetting } from './setting.actions'
 
 export async function createUpdateReview({

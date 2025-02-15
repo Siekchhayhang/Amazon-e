@@ -1,5 +1,5 @@
-'use client'
-import { useState, useTransition } from 'react'
+"use client";
+import { useState, useTransition } from "react";
 
 import {
   AlertDialog,
@@ -10,26 +10,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
-import { useToast } from '@/hooks/use-toast'
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DeleteDialog({
   id,
   action,
   callbackAction,
 }: {
-  id: string
-  action: (id: string) => Promise<{ success: boolean; message: string }>
-  callbackAction?: () => void
+  id: string;
+  action: (id: string) => Promise<{ success: boolean; message: string }>;
+  callbackAction?: () => void;
 }) {
-  const [open, setOpen] = useState(false)
-  const [isPending, startTransition] = useTransition()
-  const { toast } = useToast()
+  const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button size='sm' variant='outline'>
+        <Button size="sm" variant="outline">
           Delete
         </Button>
       </AlertDialogTrigger>
@@ -44,31 +44,31 @@ export default function DeleteDialog({
           <AlertDialogCancel>Cancel</AlertDialogCancel>
 
           <Button
-            variant='destructive'
-            size='sm'
+            variant="destructive"
+            size="sm"
             disabled={isPending}
             onClick={() =>
               startTransition(async () => {
-                const res = await action(id)
+                const res = await action(id);
                 if (!res.success) {
                   toast({
-                    variant: 'destructive',
+                    variant: "destructive",
                     description: res.message,
-                  })
+                  });
                 } else {
-                  setOpen(false)
+                  setOpen(false);
                   toast({
                     description: res.message,
-                  })
-                  if (callbackAction) callbackAction()
+                  });
+                  if (callbackAction) callbackAction();
                 }
               })
             }
           >
-            {isPending ? 'Deleting...' : 'Delete'}
+            {isPending ? "Deleting..." : "Delete"}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }

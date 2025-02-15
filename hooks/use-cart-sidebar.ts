@@ -1,7 +1,7 @@
-import { usePathname } from 'next/navigation'
-import useDeviceType from './use-device-type'
-import useCartStore from './use-cart-store'
 import { i18n } from '@/i18n-config'
+import { usePathname } from 'next/navigation'
+import useCartStore from './use-cart-store'
+import useDeviceType from './use-device-type'
 
 const locales = i18n.locales
   .filter((locale) => locale.code !== 'en-US')

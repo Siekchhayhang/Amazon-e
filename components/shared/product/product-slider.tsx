@@ -1,33 +1,32 @@
-'use client'
+"use client";
 
-import * as React from 'react'
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from '@/components/ui/carousel'
-import ProductCard from './product-card'
-import { IProduct } from '@/lib/db/models/product.model'
+} from "@/components/ui/carousel";
+import { IProduct } from "@/lib/db/models/product.model";
+import ProductCard from "./product-card";
 
 export default function ProductSlider({
   title,
   products,
   hideDetails = false,
 }: {
-  title?: string
-  products: IProduct[]
-  hideDetails?: boolean
+  title?: string;
+  products: IProduct[];
+  hideDetails?: boolean;
 }) {
   return (
-    <div className='w-full bg-background'>
-      <h2 className='h2-bold mb-5'>{title}</h2>
+    <div className="w-full bg-background">
+      <h2 className="h2-bold mb-5">{title}</h2>
       <Carousel
         opts={{
-          align: 'start',
+          align: "start",
         }}
-        className='w-full'
+        className="w-full"
       >
         <CarouselContent>
           {products.map((product) => (
@@ -35,8 +34,8 @@ export default function ProductSlider({
               key={product.slug}
               className={
                 hideDetails
-                  ? 'md:basis-1/4 lg:basis-1/6'
-                  : 'md:basis-1/3 lg:basis-1/5'
+                  ? "md:basis-1/4 lg:basis-1/6"
+                  : "md:basis-1/3 lg:basis-1/5"
               }
             >
               <ProductCard
@@ -48,9 +47,9 @@ export default function ProductSlider({
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className='left-0' />
-        <CarouselNext className='right-0' />
+        <CarouselPrevious className="left-0" />
+        <CarouselNext className="right-0" />
       </Carousel>
     </div>
-  )
+  );
 }

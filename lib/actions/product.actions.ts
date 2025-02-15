@@ -2,11 +2,11 @@
 
 import { connectToDatabase } from '@/lib/db'
 import Product, { IProduct } from '@/lib/db/models/product.model'
+import { IProductInput } from '@/types'
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
 import { formatError } from '../utils'
 import { ProductInputSchema, ProductUpdateSchema } from '../validator'
-import { IProductInput } from '@/types'
-import { z } from 'zod'
 import { getSetting } from './setting.actions'
 
 // CREATE
@@ -83,11 +83,11 @@ export async function getAllProductsForAdmin({
   const queryFilter =
     query && query !== 'all'
       ? {
-          name: {
-            $regex: query,
-            $options: 'i',
-          },
-        }
+        name: {
+          $regex: query,
+          $options: 'i',
+        },
+      }
       : {}
 
   const order: Record<string, 1 | -1> =
@@ -239,11 +239,11 @@ export async function getAllProducts({
   const queryFilter =
     query && query !== 'all'
       ? {
-          name: {
-            $regex: query,
-            $options: 'i',
-          },
-        }
+        name: {
+          $regex: query,
+          $options: 'i',
+        },
+      }
       : {}
   const categoryFilter = category && category !== 'all' ? { category } : {}
   const tagFilter = tag && tag !== 'all' ? { tags: tag } : {}
@@ -251,20 +251,20 @@ export async function getAllProducts({
   const ratingFilter =
     rating && rating !== 'all'
       ? {
-          avgRating: {
-            $gte: Number(rating),
-          },
-        }
+        avgRating: {
+          $gte: Number(rating),
+        },
+      }
       : {}
   // 10-50
   const priceFilter =
     price && price !== 'all'
       ? {
-          price: {
-            $gte: Number(price.split('-')[0]),
-            $lte: Number(price.split('-')[1]),
-          },
-        }
+        price: {
+          $gte: Number(price.split('-')[0]),
+          $lte: Number(price.split('-')[1]),
+        },
+      }
       : {}
   const order: Record<string, 1 | -1> =
     sort === 'best-selling'

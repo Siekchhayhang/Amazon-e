@@ -1,18 +1,18 @@
 'use server'
 
-import { Cart, IOrderList, OrderItem, ShippingAddress } from '@/types'
-import { formatError, round2 } from '../utils'
-import { connectToDatabase } from '../db'
 import { auth } from '@/auth'
-import { OrderInputSchema } from '../validator'
-import Order, { IOrder } from '../db/models/order.model'
-import { revalidatePath } from 'next/cache'
 import { sendAskReviewOrderItems, sendPurchaseReceipt } from '@/emails'
-import { paypal } from '../paypal'
+import { Cart, IOrderList, OrderItem, ShippingAddress } from '@/types'
+import mongoose from 'mongoose'
+import { revalidatePath } from 'next/cache'
 import { DateRange } from 'react-day-picker'
+import { connectToDatabase } from '../db'
+import Order, { IOrder } from '../db/models/order.model'
 import Product from '../db/models/product.model'
 import User from '../db/models/user.model'
-import mongoose from 'mongoose'
+import { paypal } from '../paypal'
+import { formatError, round2 } from '../utils'
+import { OrderInputSchema } from '../validator'
 import { getSetting } from './setting.actions'
 
 // CREATE
@@ -292,23 +292,23 @@ export const calcDeliveryDateAndPrice = async ({
 
   const deliveryDate =
     availableDeliveryDates[
-      deliveryDateIndex === undefined
-        ? availableDeliveryDates.length - 1
-        : deliveryDateIndex
+    deliveryDateIndex === undefined
+      ? availableDeliveryDates.length - 1
+      : deliveryDateIndex
     ]
   const shippingPrice =
     !shippingAddress || !deliveryDate
       ? undefined
       : deliveryDate.freeShippingMinPrice > 0 &&
-          itemsPrice >= deliveryDate.freeShippingMinPrice
+        itemsPrice >= deliveryDate.freeShippingMinPrice
         ? 0
         : deliveryDate.shippingPrice
 
   const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0.15)
   const totalPrice = round2(
     itemsPrice +
-      (shippingPrice ? round2(shippingPrice) : 0) +
-      (taxPrice ? round2(taxPrice) : 0)
+    (shippingPrice ? round2(shippingPrice) : 0) +
+    (taxPrice ? round2(taxPrice) : 0)
   )
   return {
     availableDeliveryDates,

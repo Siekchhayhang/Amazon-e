@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { ThemeProvider as NextThemesProvider } from 'next-themes'
-import { ColorProvider } from './color-provider'
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+import * as React from "react";
+import { ColorProvider } from "./color-provider";
 export function ThemeProvider({
   children,
   ...props
@@ -11,5 +11,5 @@ export function ThemeProvider({
     <NextThemesProvider {...props}>
       <ColorProvider>{children}</ColorProvider>
     </NextThemesProvider>
-  )
+  );
 }

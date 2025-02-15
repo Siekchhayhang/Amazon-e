@@ -6,8 +6,8 @@ import { connectToDatabase } from '@/lib/db'
 import WebPage, { IWebPage } from '@/lib/db/models/web-page.model'
 import { formatError } from '@/lib/utils'
 
-import { WebPageInputSchema, WebPageUpdateSchema } from '../validator'
 import { z } from 'zod'
+import { WebPageInputSchema, WebPageUpdateSchema } from '../validator'
 
 // CREATE
 export async function createWebPage(data: z.infer<typeof WebPageInputSchema>) {

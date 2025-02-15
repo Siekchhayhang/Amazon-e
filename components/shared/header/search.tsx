@@ -3,6 +3,8 @@ import { SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getAllCategories } from "@/lib/actions/product.actions";
 
+import { getSetting } from "@/lib/actions/setting.actions";
+import { getTranslations } from "next-intl/server";
 import {
   Select,
   SelectContent,
@@ -10,8 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../ui/select";
-import { getSetting } from "@/lib/actions/setting.actions";
-import { getTranslations } from "next-intl/server";
 
 export default async function Search() {
   const {

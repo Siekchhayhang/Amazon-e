@@ -1,15 +1,15 @@
 'use server'
 
-import bcrypt from 'bcryptjs'
 import { auth, signIn, signOut } from '@/auth'
 import { IUserName, IUserSignIn, IUserSignUp } from '@/types'
-import { UserSignUpSchema, UserUpdateSchema } from '../validator'
+import bcrypt from 'bcryptjs'
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+import { z } from 'zod'
 import { connectToDatabase } from '../db'
 import User, { IUser } from '../db/models/user.model'
 import { formatError } from '../utils'
-import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
-import { z } from 'zod'
+import { UserSignUpSchema, UserUpdateSchema } from '../validator'
 import { getSetting } from './setting.actions'
 
 // CREATE

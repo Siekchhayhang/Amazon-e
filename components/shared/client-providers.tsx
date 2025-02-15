@@ -1,30 +1,30 @@
-'use client'
-import React from 'react'
-import useCartSidebar from '@/hooks/use-cart-sidebar'
-import CartSidebar from './cart-sidebar'
-import { ThemeProvider } from './theme-provider'
-import { Toaster } from '../ui/toaster'
-import AppInitializer from './app-initializer'
-import { ClientSetting } from '@/types'
+"use client";
+import useCartSidebar from "@/hooks/use-cart-sidebar";
+import { ClientSetting } from "@/types";
+import React from "react";
+import { Toaster } from "../ui/toaster";
+import AppInitializer from "./app-initializer";
+import CartSidebar from "./cart-sidebar";
+import { ThemeProvider } from "./theme-provider";
 
 export default function ClientProviders({
   setting,
   children,
 }: {
-  setting: ClientSetting
-  children: React.ReactNode
+  setting: ClientSetting;
+  children: React.ReactNode;
 }) {
-  const visible = useCartSidebar()
+  const visible = useCartSidebar();
 
   return (
     <AppInitializer setting={setting}>
       <ThemeProvider
-        attribute='class'
+        attribute="class"
         defaultTheme={setting.common.defaultTheme.toLocaleLowerCase()}
       >
         {visible ? (
-          <div className='flex min-h-screen'>
-            <div className='flex-1 overflow-hidden'>{children}</div>
+          <div className="flex min-h-screen">
+            <div className="flex-1 overflow-hidden">{children}</div>
             <CartSidebar />
           </div>
         ) : (
@@ -33,5 +33,5 @@ export default function ClientProviders({
         <Toaster />
       </ThemeProvider>
     </AppInitializer>
-  )
+  );
 }

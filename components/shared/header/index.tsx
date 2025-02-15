@@ -1,13 +1,13 @@
+import { getAllCategories } from "@/lib/actions/product.actions";
+import { getSetting } from "@/lib/actions/setting.actions";
+import { APP_NAME } from "@/lib/constants";
+import data from "@/lib/data";
+import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import Link from "next/link";
-import { getAllCategories } from "@/lib/actions/product.actions";
 import Menu from "./menu";
 import Search from "./search";
-import data from "@/lib/data";
 import Sidebar from "./sidebar";
-import { getSetting } from "@/lib/actions/setting.actions";
-import { getTranslations } from "next-intl/server";
-import { APP_NAME } from "@/lib/constants";
 
 export default async function Header() {
   const categories = await getAllCategories();
