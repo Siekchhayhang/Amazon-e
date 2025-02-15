@@ -2,7 +2,7 @@ export const i18n = {
   locales: [
     { code: 'en-US', name: 'English', icon: '🇺🇸' },
     { code: 'fr', name: 'Français', icon: '🇫🇷' },
-    { code: 'ar', name: 'العربية', icon: '🇸🇦' },
+    { code: 'ar', name: 'កម្ពុជា', icon: 'CA' },
   ],
   defaultLocale: 'en-US',
 }
