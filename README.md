@@ -38,8 +38,8 @@ https://next-mongo-ecommerce-final.vercel.app/
 1. Clone repo
 
    ```shell
-    $ git clone git@github.com:basir/nextjs-amazona.git
-    $ cd nextjs-amazona
+    $ git clon
+    $ cd nextjs-anazona
    ```
 
 2. Create Env File
@@ -117,4 +117,4 @@ https://next-mongo-ecommerce-final.vercel.app/
 
 ## Contact Developer
 
-Email: basir.jafarzadeh@gmail.com
+Email: chhayhangs@gmail.com
