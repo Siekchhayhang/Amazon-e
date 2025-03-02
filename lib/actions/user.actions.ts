@@ -1,7 +1,7 @@
 'use server'
 
 import { auth, signIn, signOut } from '@/auth'
-import { IUserName, IUserSignIn, IUserSignUp } from '@/types'
+import { IUserName, IUserSignIn, IUserSignUp, ShippingAddress } from '@/types'
 import bcrypt from 'bcryptjs'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -11,6 +11,7 @@ import User, { IUser } from '../db/models/user.model'
 import { formatError } from '../utils'
 import { UserSignUpSchema, UserUpdateSchema } from '../validator'
 import { getSetting } from './setting.actions'
+
 
 // CREATE
 export async function registerUser(userSignUp: IUserSignUp) {
@@ -130,4 +131,30 @@ export async function getUserById(userId: string) {
   const user = await User.findById(userId)
   if (!user) throw new Error('User not found')
   return JSON.parse(JSON.stringify(user)) as IUser
+}
+
+export async function saveEditShippingAddressToDatabase(
+  shippingAddress: ShippingAddress
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error('User not authenticated');
+    }
+
+    await connectToDatabase();
+    const user = await User.findById(session.user.id);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Update the user's shipping address
+    user.shippingAddress = shippingAddress;
+    await user.save();
+    return { success: true, message: 'Shipping address saved successfully' };
+  } catch (error) {
+    console.error('Error saving shipping address:', error);
+    return { success: false, message: formatError(error) };
+  }
 }

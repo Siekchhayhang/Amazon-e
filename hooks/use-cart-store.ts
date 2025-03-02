@@ -24,6 +24,7 @@ interface CartState {
   setShippingAddress: (shippingAddress: ShippingAddress) => Promise<void>
   setPaymentMethod: (paymentMethod: string) => void
   setDeliveryDateIndex: (index: number) => Promise<void>
+  editShippingAddress: (updatedAddress: Partial<ShippingAddress>) => Promise<void>;
 }
 
 const useCartStore = create(
@@ -140,6 +141,26 @@ const useCartStore = create(
           },
         })
       },
+
+      editShippingAddress: async (updatedAddress: Partial<ShippingAddress>) => {
+        const { cart } = get();
+        const newShippingAddress: ShippingAddress = {
+          ...cart.shippingAddress,
+          ...updatedAddress
+        } as ShippingAddress;
+
+        set({
+          cart: {
+            ...cart,
+            shippingAddress: newShippingAddress,
+            ...(await calcDeliveryDateAndPrice({
+              items: cart.items,
+              shippingAddress: newShippingAddress,
+            })),
+          },
+        });
+      },
+
       setPaymentMethod: (paymentMethod: string) => {
         set({
           cart: {

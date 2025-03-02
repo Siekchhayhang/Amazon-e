@@ -1,10 +1,11 @@
-import { IUserInput } from '@/types'
+import { IUserInput, ShippingAddress } from '@/types'
 import { Document, Model, model, models, Schema } from 'mongoose'
 
 export interface IUser extends Document, IUserInput {
   _id: string
   createdAt: Date
   updatedAt: Date
+  shippingAddress?: ShippingAddress
 }
 
 const userSchema = new Schema<IUser>(
@@ -15,6 +16,7 @@ const userSchema = new Schema<IUser>(
     password: { type: String },
     image: { type: String },
     emailVerified: { type: Boolean, default: false },
+    shippingAddress: { type: Object, required: false },
   },
   {
     timestamps: true,
