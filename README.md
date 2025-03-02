@@ -10,15 +10,6 @@
 | Authentication | Auth.js, Google Auth, Magic Link |
 | Others         | uploadthing, resend, zod, etc    |
 
-[![Next.js MongoDB Amazona](/public/images/app.png)](https://next-mongo-ecommerce-final.vercel.app/)
-
-## Watch Video Tutorial
-
-[![Next.js MongoDB Amazona](https://i9.ytimg.com/vi/WLHCPwqHzzQ/mqdefault.jpg?v=676eca94&sqp=CIzAv7sG&rs=AOn4CLDrL8ebdZ8YJyJp96oMMKBTyAD1Dw)](https://youtu.be/WLHCPwqHzzQ)
-
-## View Demo Website
-
-https://next-mongo-ecommerce-final.vercel.app/
 
 ## What you will learn
 
@@ -38,8 +29,8 @@ https://next-mongo-ecommerce-final.vercel.app/
 1. Clone repo
 
    ```shell
-    $ git clone git@github.com:basir/nextjs-amazona.git
-    $ cd nextjs-amazona
+    $ git clon
+    $ cd nextjs-anazona
    ```
 
 2. Create Env File
@@ -117,4 +108,4 @@ https://next-mongo-ecommerce-final.vercel.app/
 
 ## Contact Developer
 
-Email: basir.jafarzadeh@gmail.com
+Email: chhayhangs@gmail.com
