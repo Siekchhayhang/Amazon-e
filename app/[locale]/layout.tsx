@@ -55,7 +55,7 @@ export default async function AppLayout({
   return (
     <html
       lang={locale}
-      dir={getDirection(locale) === "rtl" ? "rtl" : "ltr"}
+      dir={getDirection(locale) === "rtl" ? "ltr" : "rtl"}
       suppressHydrationWarning
     >
       <body
