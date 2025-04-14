@@ -28,8 +28,8 @@ import { useForm } from "react-hook-form";
 const signUpDefaultValues =
   process.env.NODE_ENV === "development"
     ? {
-        name: "john doe",
-        email: "john@me.com",
+        name: "Siek Chhaihang",
+        email: "siekchhaihang@exmple.com",
         password: "123456",
         confirmPassword: "123456",
       }

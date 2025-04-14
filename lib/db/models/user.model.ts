@@ -6,6 +6,11 @@ export interface IUser extends Document, IUserInput {
   createdAt: Date
   updatedAt: Date
   shippingAddress?: ShippingAddress
+  isVerified: boolean;
+  verificationToken?: string;
+  verificationTokenExpires?: Date;
+  resetPasswordToken?: string;
+  resetPasswordTokenExpires?: Date;
 }
 
 const userSchema = new Schema<IUser>(
@@ -17,6 +22,10 @@ const userSchema = new Schema<IUser>(
     image: { type: String },
     emailVerified: { type: Boolean, default: false },
     shippingAddress: { type: Object, required: false },
+    resetPasswordToken: { type: String },
+    resetPasswordTokenExpires: { type: Date },
+    verificationToken: { type: String },
+    verificationTokenExpires: { type: Date },
   },
   {
     timestamps: true,

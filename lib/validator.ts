@@ -199,6 +199,27 @@ export const UserNameSchema = z.object({
   name: UserName,
 })
 
+//FORGOT PASSWORD SCHEMA
+export const ForgotPasswordSchema = z.object({
+  email: Email,
+})
+
+// RESET PASSWORD SCHEMA
+export const ResetPasswordSchema = z.object({
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(100)
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
+    ),
+  confirmPassword: z.string(),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
 // WEBPAGE
 export const WebPageInputSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),

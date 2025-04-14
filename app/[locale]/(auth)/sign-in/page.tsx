@@ -11,14 +11,10 @@ import { getSetting } from "@/lib/actions/setting.actions";
 import CredentialsSignInForm from "./credentials-signin-form";
 import { GoogleSignInForm } from "./google-signin-form";
 
-export const metadata: Metadata = {
-  title: "Sign In",
-};
+export const metadata: Metadata = { title: "Sign In" };
 
 export default async function SignInPage(props: {
-  searchParams: Promise<{
-    callbackUrl: string;
-  }>;
+  searchParams: Promise<{ callbackUrl: string }>;
 }) {
   const searchParams = await props.searchParams;
   const { site } = await getSetting();
@@ -39,6 +35,15 @@ export default async function SignInPage(props: {
         <CardContent>
           <div>
             <CredentialsSignInForm />
+            <Link
+              href={`/forgot-password?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+              className="text-sm text-center block"
+            >
+              <Button variant="link" className="w-full">
+                Forgot password?
+              </Button>
+            </Link>
+
             <SeparatorWithOr />
             <div className="mt-4">
               <GoogleSignInForm />

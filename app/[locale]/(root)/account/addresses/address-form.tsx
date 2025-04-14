@@ -1,4 +1,5 @@
 "use client";
+import { shippingAddressDefaultValues } from "@/app/[locale]/checkout/checkout-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
@@ -29,7 +30,7 @@ export default function AddressesFormPage() {
 
   const address = useForm<ShippingAddress>({
     resolver: zodResolver(ShippingAddressSchema),
-    defaultValues: shippingAddress,
+    defaultValues: shippingAddress || shippingAddressDefaultValues,
   });
 
   const onChangeShippingAddress = async (values: ShippingAddress) => {

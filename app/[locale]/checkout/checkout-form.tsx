@@ -40,7 +40,7 @@ import useCartStore from "@/hooks/use-cart-store";
 import useSettingStore from "@/hooks/use-setting-store";
 import ProductPrice from "@/components/shared/product/product-price";
 
-  const shippingAddressDefaultValues =
+export const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
     ? {
         fullName: "Siek Chhaihang",

@@ -16,6 +16,7 @@ import {
   UserSignInSchema,
   UserSignUpSchema,
   WebPageInputSchema,
+  ForgotPasswordSchema,
 } from '@/lib/validator'
 import { z } from 'zod'
 
@@ -70,6 +71,7 @@ export type IUserInput = z.infer<typeof UserInputSchema>
 export type IUserSignIn = z.infer<typeof UserSignInSchema>
 export type IUserSignUp = z.infer<typeof UserSignUpSchema>
 export type IUserName = z.infer<typeof UserNameSchema>
+export type IUserForgotPassword = z.infer<typeof ForgotPasswordSchema>
 
 // webpage
 export type IWebPageInput = z.infer<typeof WebPageInputSchema>
