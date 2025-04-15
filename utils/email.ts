@@ -7,7 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 async function sendEmail(to: string, subject: string, html: string) {
     try {
         await resend.emails.send({
-            from: 'smtp.resend.com',
+            from: 'Collection Online Shop <Noreply@resend.dev>',
             to,
             subject,
             html,
@@ -41,7 +41,7 @@ export async function sendResetPasswordEmail(email: string, token: string) {
     }
 
     const { site: { url: siteUrl } } = await getSetting();
-    const resetLink = `${siteUrl}/auth/reset-password?token=${token}`;
+    const resetLink = `${siteUrl}/reset-password?token=${token}`;
     console.log(resetLink);
     console.log(email);
     await sendEmail(
