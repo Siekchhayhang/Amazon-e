@@ -187,6 +187,7 @@ export const UserInputSchema = z.object({
 export const UserSignInSchema = z.object({
   email: Email,
   password: Password,
+
 })
 export const UserSignUpSchema = UserSignInSchema.extend({
   name: UserName,

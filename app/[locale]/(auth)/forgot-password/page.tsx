@@ -6,49 +6,19 @@ import { redirect } from "next/navigation";
 
 export const metadata: Metadata = { title: "Forgot Password" };
 
-type ForgotPasswordPageProps = {
-  params: Promise<{ locale: string }>; // Updated params type
-  searchParams: Promise<{ callbackUrl: string }>;
-};
-
-export default async function ForgotPasswordPage({
-  params, // Receive the params prop
-  searchParams,
-}: ForgotPasswordPageProps) {
-  const { locale } = await params; // Await the params to access locale
-  const callbackUrl = await searchParams.then(
-    (params) => params.callbackUrl || "/"
-  );
-
+const ForgotPasswordPage = async () => {
   const session = await auth();
   if (session) {
-    redirect(callbackUrl);
+    redirect("/");
   }
 
   return (
-    <div className="w-full">
-      <p
-        style={{
-          overflow: "hidden",
-          whiteSpace: "nowrap",
-          animation: "slide 5s linear infinite",
-        }}
-      >
-        Your Current Language: {locale}
-      </p>
-      <style>{`
-        @keyframes slide {
-          0% {
-            transform: translateX(100%);
-          }
-          100% {
-            transform: translateX(-100%);
-          }
-        }
-      `}</style>
-      <Card>
+    <div className="w-full ">
+      <Card className="max-w-md w-full p-6">
         <CardHeader>
-          <CardTitle className="text-2xl">Forgot Password</CardTitle>
+          <CardTitle className="text-2xl font-semibold text-center">
+            Forgot Password
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ForgotPasswordForm />
@@ -56,4 +26,6 @@ export default async function ForgotPasswordPage({
       </Card>
     </div>
   );
-}
+};
+
+export default ForgotPasswordPage;

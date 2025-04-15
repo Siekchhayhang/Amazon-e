@@ -10,64 +10,64 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { resetPassword } from "@/lib/actions/user.actions"; // You'll need to create this action
-import { ResetPasswordSchema } from "@/lib/validator"; // You'll need to create this schema
+import { resetPassword } from "@/lib/actions/user.actions";
+import { ResetPasswordSchema } from "@/lib/validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-// Define the type based on the schema
 type ResetPasswordFormData = z.infer<typeof ResetPasswordSchema>;
 
-const resetPasswordDefaultValues: ResetPasswordFormData =
-  process.env.NODE_ENV === "development"
-    ? { password: "", confirmPassword: "" }
-    : { password: "", confirmPassword: "" };
+const resetPasswordDefaultValues: ResetPasswordFormData = {
+  password: "",
+  confirmPassword: "",
+};
 
 export default function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
-  const callbackUrl = searchParams.get("callbackUrl") || "/reset-password";
 
   const form = useForm<ResetPasswordFormData>({
     resolver: zodResolver(ResetPasswordSchema),
     defaultValues: resetPasswordDefaultValues,
   });
 
-  const { control, handleSubmit } = form;
+  const {
+    control,
+    handleSubmit,
+    formState: { isValid },
+  } = form;
 
   const onSubmit = async (data: ResetPasswordFormData) => {
-    try {
-      if (!token) {
-        toast({
-          title: "Error",
-          description:
-            "Reset token is missing. Please request a new password reset link.",
-          variant: "destructive",
-        });
-        return;
-      }
+    if (!token) {
+      toast({
+        title: "Error",
+        description:
+          "Reset token is missing. Please request a new password reset link.",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    try {
       const response = await resetPassword({
         token,
         newPassword: data.password,
       });
-
-      if (response.success) {
-        console.log(token);
+      if (response?.success) {
         toast({
           title: "Password Reset Successful",
           description:
-            "Your password has been reset successfully. You can now log in with your new password.",
+            "Your password has been reset successfully. You can now log in.",
           variant: "default",
         });
-        router.push(callbackUrl);
+        router.push("/sign-in"); // Redirect to sign-in after successful reset
       } else {
         toast({
           title: "Error",
-          description: response.error || "Something went wrong.",
+          description: response?.error || "Something went wrong.",
           variant: "destructive",
         });
       }
@@ -87,7 +87,6 @@ export default function ResetPasswordForm() {
       <Form {...form}>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <input type="hidden" name="token" value={token} />
-          <input type="hidden" name="callbackUrl" value={callbackUrl} />
 
           <FormField
             control={control}
@@ -126,7 +125,9 @@ export default function ResetPasswordForm() {
           />
 
           <div>
-            <Button type="submit">Reset Password</Button>
+            <Button type="submit" disabled={!isValid}>
+              Reset Password
+            </Button>
           </div>
         </form>
       </Form>
