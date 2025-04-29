@@ -22,6 +22,9 @@ import { UserSignInSchema } from "@/lib/validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
+import { useState } from "react"; // at the top
+import { Eye, EyeOff } from "lucide-react"; // optional: for toggle icon
+
 const signInDefaultValues =
   process.env.NODE_ENV === "development"
     ? {
@@ -52,6 +55,7 @@ export default function CredentialsSignInForm() {
       await signInWithCredentials({
         email: data.email,
         password: data.password,
+        twoFactorCode: data.twoFactorCode,
       });
       redirect(callbackUrl);
     } catch (error) {
@@ -65,6 +69,8 @@ export default function CredentialsSignInForm() {
       });
     }
   };
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
   return (
     <Form {...form}>
@@ -92,11 +98,25 @@ export default function CredentialsSignInForm() {
               <FormItem className="w-full">
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="Enter password"
-                    {...field}
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter password"
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      onClick={togglePasswordVisibility}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 " />
+                      ) : (
+                        <Eye className="h-4 w-4  " />
+                      )}
+                    </button>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
