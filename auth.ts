@@ -39,6 +39,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           type: 'email',
         },
         password: { type: 'password' },
+        twoFactorCode: { type: 'text' },
       },
       async authorize(credentials) {
         await connectToDatabase()
@@ -46,21 +47,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const user = await User.findOne({ email: credentials.email })
 
-        if (user && user.password) {
-          const isMatch = await bcrypt.compare(
-            credentials.password as string,
-            user.password
-          )
-          if (isMatch) {
-            return {
-              id: user._id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
-            }
+        if (!user || !user.password) return null
+
+        const isMatch = await bcrypt.compare(
+          credentials.password as string,
+          user.password
+        )
+
+        if (!isMatch) return null
+
+        // 🧠 Password is correct — now check 2FA
+        if (user.isTwoFactorEnabled) {
+          if (!credentials.twoFactorCode) {
+            throw new Error('TWO_FACTOR_CODE_REQUIRED')
+          }
+
+          const speakeasy = await import('speakeasy')
+
+          const isValid2FA = speakeasy.totp.verify({
+            secret: user.twoFactorSecret as string,
+            encoding: 'base32',
+            token: credentials.twoFactorCode as string,
+            window: 1,
+          })
+
+          if (!isValid2FA) {
+            throw new Error('INVALID_TWO_FACTOR_CODE')
           }
         }
-        return null
+
+        // 🎯 Passed password and 2FA checks
+        return {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        }
       },
     }),
   ],

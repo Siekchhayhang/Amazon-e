@@ -102,6 +102,7 @@ export default function CredentialsSignInForm() {
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter password"
+                      maxLength={30}
                       {...field}
                     />
                     <button

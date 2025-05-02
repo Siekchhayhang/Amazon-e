@@ -20,6 +20,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'Stripe',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
   {
     name: 'Jane',
@@ -37,6 +38,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'Cash On Delivery',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
   {
     name: 'Jack',
@@ -54,6 +56,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'PayPal',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
   {
     name: 'Sarah',
@@ -71,6 +74,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'Cash On Delivery',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
   {
     name: 'Michael',
@@ -88,6 +92,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'PayPal',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
   {
     name: 'Emily',
@@ -105,6 +110,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'Stripe',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
   {
     name: 'Alice',
@@ -122,6 +128,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'Cash On Delivery',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
   {
     name: 'Tom',
@@ -139,6 +146,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'Stripe',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
   {
     name: 'Linda',
@@ -156,6 +164,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'PayPal',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
   {
     name: 'George',
@@ -173,6 +182,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'Stripe',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
   {
     name: 'Jessica',
@@ -190,6 +200,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'Cash On Delivery',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
   {
     name: 'Chris',
@@ -207,6 +218,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'PayPal',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
   {
     name: 'Samantha',
@@ -224,6 +236,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'Stripe',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
   {
     name: 'David',
@@ -241,6 +254,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'Cash On Delivery',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
   {
     name: 'Anna',
@@ -258,6 +272,7 @@ const users: IUserInput[] = [
     },
     paymentMethod: 'PayPal',
     emailVerified: false,
+    isTwoFactorEnabled: false
   },
 ]
 

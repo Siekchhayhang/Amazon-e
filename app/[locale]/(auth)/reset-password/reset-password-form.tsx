@@ -13,7 +13,9 @@ import { toast } from "@/hooks/use-toast";
 import { resetPassword } from "@/lib/actions/user.actions";
 import { ResetPasswordSchema } from "@/lib/validator";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { EyeOff, Eye } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -81,6 +83,13 @@ export default function ResetPasswordForm() {
     }
   };
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
+  const toggleConfirmPasswordVisibility = () =>
+    setShowConfirmPassword((prev) => !prev);
+
   return (
     <div className="max-w-md mx-auto mt-10">
       <h2 className="text-2xl font-bold text-center">Reset Your Password</h2>
@@ -93,13 +102,28 @@ export default function ResetPasswordForm() {
             name="password"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>New Password</FormLabel>
+                <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="Enter your new password"
-                    {...field}
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter password"
+                      maxLength={30}
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      onClick={togglePasswordVisibility}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 " />
+                      ) : (
+                        <Eye className="h-4 w-4  " />
+                      )}
+                    </button>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -113,11 +137,26 @@ export default function ResetPasswordForm() {
               <FormItem className="w-full">
                 <FormLabel>Confirm Password</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="Confirm your new password"
-                    {...field}
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Enter confirm password"
+                      maxLength={30}
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      onClick={toggleConfirmPasswordVisibility}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm"
+                      tabIndex={-1}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4 " />
+                      ) : (
+                        <Eye className="h-4 w-4  " />
+                      )}
+                    </button>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

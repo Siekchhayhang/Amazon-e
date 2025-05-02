@@ -149,25 +149,30 @@ export const CartSchema = z.object({
   expectedDeliveryDate: z.optional(z.date()),
 })
 
-// USER
-const UserName = z
-  .string()
-  .min(2, { message: 'Username must be at least 2 characters' })
-  .max(50, { message: 'Username must be at most 30 characters' })
-const Email = z.string().min(1, 'Email is required').email('Email is invalid')
-const Password = z.string().min(8, "Password must be at least 8 characters")
-  .max(100)
+const StrongPassword = z.string()
+  .min(8, "Password must be at least 8 characters")
+  .max(30)
   .regex(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
     "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
   )
+
+
+// USER
+const UserName = z
+  .string()
+  .min(2, { message: 'Username must be at least 2 characters' })
+  .max(30, { message: 'Username must be at most 30 characters' })
+const Email = z.string().min(1, 'Email is required').email('Email is invalid')
+const Password = StrongPassword
 const UserRole = z.string().min(1, 'role is required')
 
 export const UserUpdateSchema = z.object({
   _id: MongoId,
   name: UserName,
   email: Email,
-  role: UserRole,
+  role: UserRole, isTwoFactorEnabled: z.boolean().default(false),
+  twoFactorSecret: z.string().optional(),
 })
 
 export const UserInputSchema = z.object({
@@ -187,11 +192,14 @@ export const UserInputSchema = z.object({
     country: z.string().min(1, 'Country is required'),
     phone: z.string().min(1, 'Phone number is required'),
   }),
+  isTwoFactorEnabled: z.boolean().default(false),
+  twoFactorSecret: z.string().optional(), // Optional, because users may not have 2FA enabled yet
 })
 
 export const UserSignInSchema = z.object({
   email: Email,
   password: Password,
+  twoFactorCode: z.string().length(6, 'Two-factor code must be exactly 6 digits').optional(),
 
 })
 export const UserSignUpSchema = UserSignInSchema.extend({
@@ -212,14 +220,7 @@ export const ForgotPasswordSchema = z.object({
 
 // RESET PASSWORD SCHEMA
 export const ResetPasswordSchema = z.object({
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(100)
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-      "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
-    ),
+  password: StrongPassword,
   confirmPassword: z.string(),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords do not match",
@@ -327,4 +328,15 @@ export const SettingInputSchema = z.object({
     .array(DeliveryDateSchema)
     .min(1, 'At least one delivery date is required'),
   defaultDeliveryDate: z.string().min(1, 'Delivery date is required'),
+})
+
+export const TwoFactorVerifySchema = z.object({
+  userId: MongoId,
+  token: z.string().min(6, 'Token must be 6 digits').max(6, 'Token must be 6 digits'),
+})
+
+export const TwoFactorCodeSchema = z.object({
+  twoFactorCode: z.string()
+    .length(6, 'Two-factor code must be exactly 6 digits')
+    .regex(/^\d+$/, 'Two-factor code must only contain digits'),
 })
