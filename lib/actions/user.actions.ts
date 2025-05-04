@@ -99,8 +99,8 @@ export const SignInWithGoogle = async () => {
   await signIn('google')
 }
 export const SignOut = async () => {
-  await signOut({ redirect: false })
-  redirect('/');
+  const redirectTo = await signOut({ redirect: false })
+  redirect(redirectTo.redirect)
 }
 
 // GET
