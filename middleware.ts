@@ -33,13 +33,13 @@ export default async function middleware(req: NextRequest) {
     return intlMiddleware(req)
   }
 
-  if (!token) {
-    return NextResponse.redirect(
-      new URL(`/sign-in?callbackUrl=${encodeURIComponent(pathname)}`, req.url)
-    )
-  }
+  // if (!token) {
+  //   return NextResponse.redirect(
+  //     new URL(`/sign-in?callbackUrl=${encodeURIComponent(pathname)}`, req.url)
+  //   )
+  // }
 
-  if (isAdminPage && token.role !== 'Admin') {
+  if (isAdminPage && token?.role !== 'Admin') {
     return NextResponse.redirect(new URL('/access-denied', req.url))
   }
 
