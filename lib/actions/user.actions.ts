@@ -23,6 +23,7 @@ export async function registerUser(userSignUp: IUserSignUp) {
       email: userSignUp.email,
       password: userSignUp.password,
       confirmPassword: userSignUp.confirmPassword,
+
     })
 
     await connectToDatabase()
@@ -98,8 +99,8 @@ export const SignInWithGoogle = async () => {
   await signIn('google')
 }
 export const SignOut = async () => {
-  const redirectTo = await signOut({ redirect: false })
-  redirect(redirectTo.redirect)
+  await signOut({ redirect: false })
+  redirect('/');
 }
 
 // GET
