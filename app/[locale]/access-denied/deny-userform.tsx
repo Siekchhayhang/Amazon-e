@@ -1,17 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function AccessDeniedform() {
-  const router = useRouter();
   const [count, setCount] = useState(5);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push("/");
+      setShouldRedirect(true);
     }, 5000);
 
     const interval = setInterval(() => {
@@ -22,7 +21,7 @@ export default function AccessDeniedform() {
       clearTimeout(timer);
       clearInterval(interval);
     };
-  }, [router]);
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4 text-center">
@@ -33,12 +32,24 @@ export default function AccessDeniedform() {
         <p className="text-gray-600 mb-6">
           You do not have permission to view this page.
         </p>
-        <p className="text-gray-500 mb-6">Redirecting in {count} seconds...</p>
-        <Link href="/">
-          <Button variant="default" size="lg">
-            Go Back Home
-          </Button>
-        </Link>
+        <p className="text-gray-500 mb-6">
+          {shouldRedirect
+            ? "Redirecting..."
+            : `Redirecting in ${count} seconds...`}
+        </p>
+        {shouldRedirect ? (
+          <Link href="/">
+            <Button variant="default" size="lg" disabled>
+              Going Back Home...
+            </Button>
+          </Link>
+        ) : (
+          <Link href="/">
+            <Button variant="default" size="lg">
+              Go Back Home
+            </Button>
+          </Link>
+        )}
       </div>
     </div>
   );
