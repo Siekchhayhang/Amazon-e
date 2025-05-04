@@ -37,6 +37,10 @@ const signInDefaultValues =
       };
 
 export default function CredentialsSignInForm() {
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const {
     setting: { site },
   } = useSettingStore();
@@ -51,26 +55,21 @@ export default function CredentialsSignInForm() {
   const { control, handleSubmit } = form;
 
   const onSubmit = async (data: IUserSignIn) => {
+    setIsSubmitting(true);
     try {
-      await signInWithCredentials({
-        email: data.email,
-        password: data.password,
-        twoFactorCode: data.twoFactorCode,
-      });
+      await signInWithCredentials({ ...data });
       redirect(callbackUrl);
     } catch (error) {
-      if (isRedirectError(error)) {
-        throw error;
-      }
+      if (isRedirectError(error)) throw error;
       toast({
         title: "Error",
         description: "Invalid email or password",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
-  const [showPassword, setShowPassword] = useState(false);
-  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
   return (
     <Form {...form}>
@@ -108,6 +107,9 @@ export default function CredentialsSignInForm() {
                     <button
                       type="button"
                       onClick={togglePasswordVisibility}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
                       className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm"
                       tabIndex={-1}
                     >
@@ -125,7 +127,9 @@ export default function CredentialsSignInForm() {
           />
 
           <div>
-            <Button type="submit">Sign In</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Signing In..." : "Sign In"}
+            </Button>
           </div>
           <div className="text-sm">
             By signing in, you agree to {site.name}&apos;s{" "}

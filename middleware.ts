@@ -1,8 +1,9 @@
+import { getToken } from 'next-auth/jwt'
+import { NextResponse } from 'next/server'
 import createMiddleware from 'next-intl/middleware'
 import { routing } from './i18n/routing'
 
-import NextAuth from 'next-auth'
-import authConfig from './auth.config'
+const intlMiddleware = createMiddleware(routing)
 
 const publicPages = [
   '/',
@@ -15,39 +16,36 @@ const publicPages = [
   '/page/(.*)',
   '/forgot-password',
   '/reset-password',
-  // (/secret requires auth)
+  '/access-denied',
 ]
 
-const intlMiddleware = createMiddleware(routing)
-const { auth } = NextAuth(authConfig)
+import { NextRequest } from 'next/server'
 
-export default auth((req) => {
-  const publicPathnameRegex = RegExp(
-    `^(/(${routing.locales.join('|')}))?(${publicPages
-      .flatMap((p) => (p === '/' ? ['', '/'] : p))
-      .join('|')})/?$`,
-    'i'
-  )
-  const isPublicPage = publicPathnameRegex.test(req.nextUrl.pathname)
+export default async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl
+  const isPublic = publicPages.some((path) => new RegExp(`^${path}$`, 'i').test(pathname))
+  const isAdminPage = pathname.startsWith('/admin') || pathname.includes('/admin')
 
-  if (isPublicPage) {
-    // return NextResponse.next()
+  // ✅ Grab token with explicit secret
+  const token = await getToken({ req, secret: process.env.AUTH_SECRET })
+
+  if (isPublic) {
     return intlMiddleware(req)
-  } else {
-    if (!req.auth) {
-      const newUrl = new URL(
-        `/sign-in?callbackUrl=${encodeURIComponent(req.nextUrl.pathname) || '/'
-        }`,
-        req.nextUrl.origin
-      )
-      return Response.redirect(newUrl)
-    } else {
-      return intlMiddleware(req)
-    }
   }
-})
+
+  if (!token) {
+    return NextResponse.redirect(
+      new URL(`/sign-in?callbackUrl=${encodeURIComponent(pathname)}`, req.url)
+    )
+  }
+
+  if (isAdminPage && token.role !== 'Admin') {
+    return NextResponse.redirect(new URL('/access-denied', req.url))
+  }
+
+  return intlMiddleware(req)
+}
 
 export const config = {
-  // Skip all paths that should not be internationalized
   matcher: ['/((?!api|_next|.*\\..*).*)'],
 }

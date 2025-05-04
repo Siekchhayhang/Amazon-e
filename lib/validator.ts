@@ -171,7 +171,8 @@ export const UserUpdateSchema = z.object({
   _id: MongoId,
   name: UserName,
   email: Email,
-  role: UserRole, isTwoFactorEnabled: z.boolean().default(false),
+  role: UserRole,
+  isTwoFactorEnabled: z.boolean().default(false),
   twoFactorSecret: z.string().optional(),
 })
 
