@@ -1,27 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function AccessDeniedform() {
+  const router = useRouter();
   const [count, setCount] = useState(5);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setShouldRedirect(true);
-    }, 5000);
+    console.log("AccessDeniedform mounted in production environment");
 
     const interval = setInterval(() => {
-      setCount((prev) => prev - 1);
+      setCount((prev) => {
+        const nextCount = prev - 1;
+        console.log(`Countdown: ${nextCount}`);
+        if (nextCount <= 0 && !isRedirecting) {
+          console.log("Countdown reached 0. Initiating redirection.");
+          setIsRedirecting(true);
+          clearInterval(interval);
+          router.push("/");
+          console.log("router.push('/') called.");
+          return 0;
+        }
+        return nextCount;
+      });
     }, 1000);
 
     return () => {
-      clearTimeout(timer);
+      console.log("AccessDeniedform unmounted. Clearing interval.");
       clearInterval(interval);
     };
-  }, []);
+  }, [router, isRedirecting]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4 text-center">
@@ -33,23 +45,15 @@ export default function AccessDeniedform() {
           You do not have permission to view this page.
         </p>
         <p className="text-gray-500 mb-6">
-          {shouldRedirect
+          {isRedirecting
             ? "Redirecting..."
             : `Redirecting in ${count} seconds...`}
         </p>
-        {shouldRedirect ? (
-          <Link href="/">
-            <Button variant="default" size="lg" disabled>
-              Going Back Home...
-            </Button>
-          </Link>
-        ) : (
-          <Link href="/">
-            <Button variant="default" size="lg">
-              Go Back Home
-            </Button>
-          </Link>
-        )}
+        <Link href="/">
+          <Button variant="default" size="lg" disabled={isRedirecting}>
+            Go Back Home
+          </Button>
+        </Link>
       </div>
     </div>
   );
