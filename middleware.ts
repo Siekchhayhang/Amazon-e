@@ -20,7 +20,7 @@ const publicPages = [
 ];
 
 export default async function middleware(req: NextRequest) {
-  const pathname = req.url;
+  const { pathname } = req.nextUrl;
   // Modified isPublic check to allow for optional trailing slashes and query parameters
   const isPublic = publicPages.some((path) => new RegExp(`^${path}(\\?.*)?$`, 'i').test(pathname) || new RegExp(`^${path}/(\\?.*)?$`, 'i').test(pathname));
   const isAdminPage = pathname.startsWith('/admin') || pathname.includes('/admin');
