@@ -1,9 +1,7 @@
-import { getToken } from 'next-auth/jwt';
-import { NextRequest, NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
-
-const intlMiddleware = createMiddleware(routing);
+import NextAuth from 'next-auth'
+import authConfig from './auth.config'
 
 const publicPages = [
   '/',
@@ -19,33 +17,35 @@ const publicPages = [
   '/access-denied',
 ];
 
-export default async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-  // Modified isPublic check to allow for optional trailing slashes and query parameters
-  const isPublic = publicPages.some((path) => new RegExp(`^${path}(\\?.*)?$`, 'i').test(pathname) || new RegExp(`^${path}/(\\?.*)?$`, 'i').test(pathname));
-  const isAdminPage = pathname.startsWith('/admin') || pathname.includes('/admin');
+const intlMiddleware = createMiddleware(routing)
+const { auth } = NextAuth(authConfig)
 
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET });
+export default auth((req) => {
+  const publicPathnameRegex = RegExp(
+    `^(/(${routing.locales.join('|')}))?(${publicPages
+      .flatMap((p) => (p === '/' ? ['', '/'] : p))
+      .join('|')})/?$`,
+    'i'
+  )
+  const isPublicPage = publicPathnameRegex.test(req.nextUrl.pathname)
 
-  if (isPublic) {
-    return intlMiddleware(req);
+  if (isPublicPage) {
+    // return NextResponse.next()
+    return intlMiddleware(req)
+  } else {
+    if (!req.auth) {
+      const newUrl = new URL(
+        `/sign-in?callbackUrl=${encodeURIComponent(req.nextUrl.pathname) || '/'
+        }`,
+        req.nextUrl.origin
+      )
+      return Response.redirect(newUrl)
+    } else {
+      return intlMiddleware(req)
+    }
   }
-
-  if (!token) {
-    return NextResponse.redirect(
-      new URL(`/sign-in?callbackUrl=${encodeURIComponent(pathname)}`, req.url)
-    );
-  }
-
-  if (isAdminPage && token.role !== 'Admin') {
-    return NextResponse.redirect(new URL('/access-denied', req.url));
-  }
-
-  return intlMiddleware(req);
-}
+})
 
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
-  ],
+  matcher: ['/((?!api|_next|.*\\..*).*)'],
 };
