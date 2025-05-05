@@ -21,7 +21,7 @@ const publicPages = [
 
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
-  const isPublic = publicPages.some((path) => new RegExp(`^${path}$`, 'i').test(pathname))
+  const isPublic = publicPages.some((path) => pathname.startsWith(path));
   const isAdminPage = pathname.startsWith('/admin') || pathname.includes('/admin')
 
   // ✅ Grab token with explicit secret
