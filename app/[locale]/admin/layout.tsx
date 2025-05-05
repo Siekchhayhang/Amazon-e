@@ -4,15 +4,12 @@ import React from "react";
 import Menu from "@/components/shared/header/menu";
 import { AdminNav } from "./admin-nav";
 import { getSetting } from "@/lib/actions/setting.actions";
-import { requireAdmin } from "@/lib/require-admin";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await requireAdmin();
-  // Ensure the user is an admin; redirects if not.
   const { site } = await getSetting();
   return (
     <>

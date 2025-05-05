@@ -39,7 +39,7 @@ export default async function middleware(req: NextRequest) {
     )
   }
 
-  if (isAdminPage && token?.role !== 'Admin') {
+  if (isAdminPage && token.role !== 'Admin') {
     return NextResponse.redirect(new URL('/access-denied', req.url))
   }
 
@@ -47,5 +47,7 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|.*\\..*).*)'],
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
+  ],
 }
