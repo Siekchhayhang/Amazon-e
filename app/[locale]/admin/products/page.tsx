@@ -9,6 +9,6 @@ export const metadata: Metadata = {
 
 export default async function AdminProduct() {
   const session = await auth();
-  if (session?.user.role !== "Admin") <AccessDeniedPage />;
+  if (session?.user.role !== "Admin") return <AccessDeniedPage />;
   return <ProductList />;
 }

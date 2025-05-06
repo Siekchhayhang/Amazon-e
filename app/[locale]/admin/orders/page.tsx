@@ -30,7 +30,7 @@ export default async function OrdersPage(props: {
   const { page = "1" } = searchParams;
 
   const session = await auth();
-  if (session?.user.role !== "Admin") <AccessDeniedPage />;
+  if (session?.user.role !== "Admin") return <AccessDeniedPage />;
 
   const orders = await getAllOrders({
     page: Number(page),

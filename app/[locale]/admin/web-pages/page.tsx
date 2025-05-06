@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 
 export default async function WebPageAdminPage() {
   const session = await auth();
-  if (session?.user.role !== "Admin") <AccessDeniedPage />;
+  if (session?.user.role !== "Admin") return <AccessDeniedPage />;
   const webPages = await getAllWebPages();
   return (
     <div className="space-y-2">

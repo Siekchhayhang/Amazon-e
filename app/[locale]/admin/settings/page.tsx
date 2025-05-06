@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 const SettingPage = async () => {
   const session = await auth();
-  if (session?.user.role !== "Admin") <AccessDeniedPage />;
+  if (session?.user.role !== "Admin") return <AccessDeniedPage />;
   return (
     <div className="grid md:grid-cols-5 max-w-6xl mx-auto gap-4">
       <SettingNav />

@@ -88,8 +88,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     jwt: async ({ token, user, trigger, session }) => {
-      console.log('JWT callback - user:', user)
-      console.log('JWT callback before token:', token)
       if (user) {
         if (!user.name) {
           await connectToDatabase()
@@ -105,7 +103,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session?.user?.name && trigger === 'update') {
         token.name = session.user.name
       }
-      console.log('JWT callback after token:', token)
       return token
     },
     session: async ({ session, user, trigger, token }) => {

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 const DashboardPage = async () => {
   const session = await auth();
-  if (session?.user.role !== "Admin") <AccessDeniedPage />;
+  if (session?.user.role !== "Admin") return <AccessDeniedPage />;
 
   return <OverviewReport />;
 };
