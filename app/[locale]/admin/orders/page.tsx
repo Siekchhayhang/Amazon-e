@@ -17,6 +17,7 @@ import { deleteOrder, getAllOrders } from "@/lib/actions/order.actions";
 import { formatDateTime, formatId } from "@/lib/utils";
 import { IOrderList } from "@/types";
 import ProductPrice from "@/components/shared/product/product-price";
+import AccessDeniedPage from "../../access-denied/page";
 
 export const metadata: Metadata = {
   title: "Admin Orders",
@@ -29,8 +30,7 @@ export default async function OrdersPage(props: {
   const { page = "1" } = searchParams;
 
   const session = await auth();
-  if (session?.user.role !== "Admin")
-    throw new Error("Admin permission required");
+  if (session?.user.role !== "Admin") <AccessDeniedPage />;
 
   const orders = await getAllOrders({
     page: Number(page),

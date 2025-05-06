@@ -1,7 +1,7 @@
+import NextAuth from 'next-auth';
 import createMiddleware from 'next-intl/middleware';
+import authConfig from './auth.config';
 import { routing } from './i18n/routing';
-import NextAuth from 'next-auth'
-import authConfig from './auth.config'
 
 const publicPages = [
   '/',
@@ -30,7 +30,7 @@ export default auth((req) => {
   const isPublicPage = publicPathnameRegex.test(req.nextUrl.pathname)
 
   if (isPublicPage) {
-    // return NextResponse.next()
+    //return NextResponse.next()
     return intlMiddleware(req)
   } else {
     if (!req.auth) {

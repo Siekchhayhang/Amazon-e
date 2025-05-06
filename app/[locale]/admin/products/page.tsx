@@ -1,10 +1,14 @@
-import { Metadata } from 'next'
-import ProductList from './product-list'
+import { Metadata } from "next";
+import ProductList from "./product-list";
+import { auth } from "@/auth";
+import AccessDeniedPage from "../../access-denied/page";
 
 export const metadata: Metadata = {
-  title: 'Admin Products',
-}
+  title: "Admin Products",
+};
 
 export default async function AdminProduct() {
-  return <ProductList />
+  const session = await auth();
+  if (session?.user.role !== "Admin") <AccessDeniedPage />;
+  return <ProductList />;
 }

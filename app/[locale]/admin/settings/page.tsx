@@ -3,11 +3,15 @@ import SettingForm from "./setting-form";
 import SettingNav from "./setting-nav";
 
 import { Metadata } from "next";
+import { auth } from "@/auth";
+import AccessDeniedPage from "../../access-denied/page";
 
 export const metadata: Metadata = {
   title: "Setting",
 };
 const SettingPage = async () => {
+  const session = await auth();
+  if (session?.user.role !== "Admin") <AccessDeniedPage />;
   return (
     <div className="grid md:grid-cols-5 max-w-6xl mx-auto gap-4">
       <SettingNav />
