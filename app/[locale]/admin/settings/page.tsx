@@ -4,7 +4,7 @@ import SettingNav from "./setting-nav";
 
 import { Metadata } from "next";
 import { auth } from "@/auth";
-import AccessDeniedPage from "../../access-denied/page";
+import AccessDeniedPage from "../access-denied/page";
 
 export const metadata: Metadata = {
   title: "Setting",

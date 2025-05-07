@@ -17,7 +17,7 @@ import { deleteOrder, getAllOrders } from "@/lib/actions/order.actions";
 import { formatDateTime, formatId } from "@/lib/utils";
 import { IOrderList } from "@/types";
 import ProductPrice from "@/components/shared/product/product-price";
-import AccessDeniedPage from "../../access-denied/page";
+import AccessDeniedPage from "../access-denied/page";
 
 export const metadata: Metadata = {
   title: "Admin Orders",

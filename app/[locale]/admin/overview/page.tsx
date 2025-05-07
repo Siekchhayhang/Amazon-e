@@ -2,7 +2,7 @@ import { Metadata } from "next";
 
 import OverviewReport from "./overview-report";
 import { auth } from "@/auth";
-import AccessDeniedPage from "../../access-denied/page";
+import AccessDeniedPage from "../access-denied/page";
 export const metadata: Metadata = {
   title: "Admin Dashboard",
 };

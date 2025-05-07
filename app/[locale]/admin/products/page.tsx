@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import ProductList from "./product-list";
 import { auth } from "@/auth";
-import AccessDeniedPage from "../../access-denied/page";
+import AccessDeniedPage from "../access-denied/page";
 
 export const metadata: Metadata = {
   title: "Admin Products",

@@ -15,7 +15,7 @@ import { Metadata } from "next";
 import { deleteWebPage, getAllWebPages } from "@/lib/actions/web-page.actions";
 import { IWebPage } from "@/lib/db/models/web-page.model";
 import { auth } from "@/auth";
-import AccessDeniedPage from "../../access-denied/page";
+import AccessDeniedPage from "../access-denied/page";
 
 export const metadata: Metadata = {
   title: "Admin Web Pages",

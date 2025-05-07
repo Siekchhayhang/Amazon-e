@@ -1,10 +1,10 @@
-import { Metadata } from 'next'
-import Link from 'next/link'
+import { Metadata } from "next";
+import Link from "next/link";
 
-import { auth } from '@/auth'
-import DeleteDialog from '@/components/shared/delete-dialog'
-import Pagination from '@/components/shared/pagination'
-import { Button } from '@/components/ui/button'
+import { auth } from "@/auth";
+import DeleteDialog from "@/components/shared/delete-dialog";
+import Pagination from "@/components/shared/pagination";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -12,29 +12,29 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { deleteUser, getAllUsers } from '@/lib/actions/user.actions'
-import { IUser } from '@/lib/db/models/user.model'
-import { formatId } from '@/lib/utils'
+} from "@/components/ui/table";
+import { deleteUser, getAllUsers } from "@/lib/actions/user.actions";
+import { IUser } from "@/lib/db/models/user.model";
+import { formatId } from "@/lib/utils";
+import AccessDeniedPage from "../../access-denied/page";
 
 export const metadata: Metadata = {
-  title: 'Admin Users',
-}
+  title: "Admin Users",
+};
 
 export default async function AdminUser(props: {
-  searchParams: Promise<{ page: string }>
+  searchParams: Promise<{ page: string }>;
 }) {
-  const searchParams = await props.searchParams
-  const session = await auth()
-  if (session?.user.role !== 'Admin')
-    throw new Error('Admin permission required')
-  const page = Number(searchParams.page) || 1
+  const searchParams = await props.searchParams;
+  const session = await auth();
+  if (session?.user.role !== "Admin") return <AccessDeniedPage />;
+  const page = Number(searchParams.page) || 1;
   const users = await getAllUsers({
     page,
-  })
+  });
   return (
-    <div className='space-y-2'>
-      <h1 className='h1-bold'>Users</h1>
+    <div className="space-y-2">
+      <h1 className="h1-bold">Users</h1>
       <div>
         <Table>
           <TableHeader>
@@ -53,8 +53,8 @@ export default async function AdminUser(props: {
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role}</TableCell>
-                <TableCell className='flex gap-1'>
-                  <Button asChild variant='outline' size='sm'>
+                <TableCell className="flex gap-1">
+                  <Button asChild variant="outline" size="sm">
                     <Link href={`/admin/users/${user._id}`}>Edit</Link>
                   </Button>
                   <DeleteDialog id={user._id} action={deleteUser} />
@@ -68,5 +68,5 @@ export default async function AdminUser(props: {
         )}
       </div>
     </div>
-  )
+  );
 }
