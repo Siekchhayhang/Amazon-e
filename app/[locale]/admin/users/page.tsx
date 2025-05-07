@@ -16,7 +16,7 @@ import {
 import { deleteUser, getAllUsers } from "@/lib/actions/user.actions";
 import { IUser } from "@/lib/db/models/user.model";
 import { formatId } from "@/lib/utils";
-import AccessDeniedPage from "../../access-denied/page";
+import AccessDeniedPage from "../access-denied/page";
 
 export const metadata: Metadata = {
   title: "Admin Users",
