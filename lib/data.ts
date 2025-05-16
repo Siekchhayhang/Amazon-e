@@ -1266,17 +1266,17 @@ We also provide helpful resources such as order tracking, product guides, and FA
         pageSize: 9,
       },
       site: {
-        name: 'Collections Online Shop',
+        name: `Collections Online Shop`,
         description:
           'Collections Online Shop is a sample Ecommerce website built with Next.js, Tailwind CSS, and MongoDB.',
-        keywords: 'Next Ecommerce, Next.js, Tailwind CSS, MongoDB',
-        url: 'https://next-mongo-ecommerce-final.vercel.app',
-        logo: '/icons/logo.svg',
+        keywords: 'Collection Online Shop, Next.js, Tailwind CSS, MongoDB',
+        url: 'https://collectionshop.it.com',
+        logo: '/icons/Collection.png',
         slogan: 'Spend less, enjoy more.',
-        author: 'Next Ecommerce',
-        copyright: '2000-2024, Next-Ecommerce.com, Inc. or its affiliates',
+        author: 'Collection Online Shop',
+        copyright: '2000-2025, Collection Online Shop',
         email: 'chayhangs@gmail.com',
-        address: '#529, 18MC Street, Stoeung Meanchey, PP, Zip 12000',
+        address: '#529, Street 18MC, Sangkat Stueng Meanchey, Khan Meanchey, Phnom Penh city, Zip 12000 ',
         phone: '+(855) 15-366-377',
       },
       carousels: [
@@ -1312,7 +1312,7 @@ We also provide helpful resources such as order tracking, product guides, and FA
           convertRate: 1,
         },
         { name: 'Euro', code: 'EUR', symbol: '€', convertRate: 0.96 },
-        { name: 'UAE Dirham', code: 'AED', symbol: 'AED', convertRate: 3.67 },
+        { name: 'KHR', code: 'KHR', symbol: '៛', convertRate: 4000.00 },
       ],
       defaultCurrency: 'USD',
       availablePaymentMethods: [
