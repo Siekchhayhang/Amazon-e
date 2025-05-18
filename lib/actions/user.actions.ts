@@ -236,11 +236,26 @@ export async function requestPasswordReset(email: string) {
     const user = await User.findOne({ email: email });
     if (!user) throw new Error('User not found');
 
+    // Check if user already requested reset in last 24 hours
+    const now = new Date();
+    const lastRequest = user.lastPasswordResetRequest;
+
+    if (lastRequest && now.getTime() - lastRequest.getTime() < 24 * 60 * 60 * 1000) {
+      const nextAvailable = new Date(lastRequest.getTime() + 24 * 60 * 60 * 1000);
+      return {
+        success: false,
+        error: `Reset password link already sent. You can request again after ${nextAvailable.toLocaleString()}`,
+        status: 429,
+      };
+    }
+
     const resetToken = await generateToken();
     const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     user.resetPasswordToken = resetToken;
     user.resetPasswordTokenExpires = tokenExpires;
+    user.lastPasswordResetRequest = now; // ✅ set request time
+
     await user.save();
 
     await sendResetPasswordEmail(email, resetToken);

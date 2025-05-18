@@ -14,6 +14,7 @@ export interface IUser extends Document, IUserInput {
   isTwoFactorEnabled: boolean;
   twoFactorSecret?: string;
   backupCodes?: string[];
+  lastPasswordResetRequest?: Date | null;
 }
 
 const userSchema = new Schema<IUser>(
@@ -32,6 +33,11 @@ const userSchema = new Schema<IUser>(
     isTwoFactorEnabled: { type: Boolean, default: false },
     twoFactorSecret: { type: String },
     backupCodes: { type: [String] },
+    lastPasswordResetRequest: {
+      type: Date,
+      default: null,
+    },
+
   },
   {
     timestamps: true,
