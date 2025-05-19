@@ -1,8 +1,9 @@
 import { Resend } from 'resend';
 import { getSetting } from '@/lib/actions/setting.actions';
 import { getUserByEmail } from '@/lib/actions/user.actions';
-
+import { toZonedTime, format } from 'date-fns-tz';
 const resend = new Resend(process.env.RESEND_API_KEY);
+
 
 async function sendEmail(to: string, subject: string, html: string) {
     try {
@@ -46,6 +47,7 @@ export async function sendVerificationEmail(email: string, token: string) {
     }
 }
 
+
 export async function sendResetPasswordEmail(email: string, token: string) {
     try {
         const user = await getUserByEmail(email);
@@ -54,15 +56,24 @@ export async function sendResetPasswordEmail(email: string, token: string) {
         }
 
         const { site: { url: siteUrl } } = await getSetting();
-        const resetLink = `${siteUrl}/reset-password?token=${token}`;
-        console.log('Reset Link:', resetLink);
-        console.log('Sending to:', email);
 
-        await sendEmail(
-            email,
-            'Reset Your Password',
-            `<p>Please click the link below to reset your password (expires in 24 hours):</p><a href="${resetLink}">${resetLink}</a>`
-        );
+        const resetLink = `${siteUrl}/reset-password?token=${token}`;
+        const tokenExpiry = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hours
+
+        // Convert to Asia/Phnom_Penh timezone
+        const timeZone = 'Asia/Phnom_Penh';
+        const zonedDate = toZonedTime(tokenExpiry, timeZone);
+        const formattedExpiry = format(zonedDate, 'yyyy-MM-dd HH:mm:ssXXX', { timeZone });
+
+        const html = `
+            <p>Hello,</p>
+            <p>You requested a password reset. Please click the link below to reset your password:</p>
+            <p><a href="${resetLink}">${resetLink}</a></p>
+            <p><strong>This link will expire at ${formattedExpiry} (Asia/Phnom_Penh time)</strong></p>
+            <p>If you didn’t request this, you can ignore this email.</p>
+        `;
+
+        await sendEmail(email, 'Reset Your Password', html);
     } catch (error) {
         console.error('Error sending reset password email:', error);
         throw error;
