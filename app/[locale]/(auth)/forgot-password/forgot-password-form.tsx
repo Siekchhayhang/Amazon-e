@@ -48,13 +48,6 @@ export default function ForgotPasswordForm() {
           variant: "default",
         });
         router.push("/reset-password");
-      } else if (response?.status === 429 && response?.nextAvailable) {
-        const formatted = new Date(response.nextAvailable).toLocaleString();
-        toast({
-          title: "You can only request a password reset once every 24 hours.",
-          description: `${response.error} You can request again after ${formatted}`,
-          variant: "destructive",
-        });
       } else {
         toast({
           title: "Error",

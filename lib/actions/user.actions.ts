@@ -245,8 +245,7 @@ export async function requestPasswordReset(email: string) {
       const nextAvailable = new Date(lastRequest.getTime() + 24 * 60 * 60 * 1000);
       return {
         success: false,
-        error: 'Reset password link already sent.',
-        nextAvailable: nextAvailable.toISOString(),
+        error: `Reset password link already sent. You can request again after ${nextAvailable.toLocaleString()}`,
         status: 429,
       };
     }
@@ -261,8 +260,6 @@ export async function requestPasswordReset(email: string) {
     await user.save();
 
     await sendResetPasswordEmail(email, resetToken);
-    user.resetPasswordToken = undefined; // Clear token after sending email
-    user.resetPasswordTokenExpires = undefined; // Clear expiry after sending email
     return { success: true, message: 'Password reset email sent' };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' };
