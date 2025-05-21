@@ -13,6 +13,7 @@ import User, { IUser } from '../db/models/user.model'
 import { formatError } from '../utils'
 import { UserSignUpSchema, UserUpdateSchema } from '../validator'
 import { getSetting } from './setting.actions'
+import { addHours } from 'date-fns'
 
 
 // CREATE
@@ -250,7 +251,7 @@ export async function requestPasswordReset(email: string) {
     }
 
     const resetToken = await generateToken();
-    const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const tokenExpires = addHours(new Date(), 24);
 
     user.resetPasswordToken = resetToken;
     user.resetPasswordTokenExpires = tokenExpires;
@@ -280,7 +281,7 @@ export async function resetPassword({ token, newPassword }: ResetPasswordParams)
       throw new Error('Invalid or expired token');
     }
 
-    user.password = await bcrypt.hash(newPassword, 5);
+    user.password = await bcrypt.hash(newPassword, 10);
     user.resetPasswordToken = undefined;
     user.resetPasswordTokenExpires = undefined;
     await user.save();

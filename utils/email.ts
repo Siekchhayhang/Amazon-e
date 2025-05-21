@@ -2,6 +2,8 @@ import { Resend } from 'resend';
 import { getSetting } from '@/lib/actions/setting.actions';
 import { getUserByEmail } from '@/lib/actions/user.actions';
 import { toZonedTime, format } from 'date-fns-tz';
+import { Timezone } from 'next-intl';
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 
@@ -58,18 +60,19 @@ export async function sendResetPasswordEmail(email: string, token: string) {
         const { site: { url: siteUrl } } = await getSetting();
 
         const resetLink = `${siteUrl}/reset-password?token=${token}`;
-        const tokenExpiry = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hours
+        // Since resetPasswordTokenExpires is not available, fallback to 24h from now
+        const tokenExpiryUtc = new Date(Date.now() + 1000 * 60 * 60 * 24);
 
-        // Convert to Asia/Phnom_Penh timezone
-        const timeZone = 'Asia/Phnom_Penh';
-        const zonedDate = toZonedTime(tokenExpiry, timeZone);
-        const formattedExpiry = format(zonedDate, 'yyyy-MM-dd HH:mm:ssXXX', { timeZone });
+        // Convert expiry to user's local timezone if available, otherwise use Asia/Phnom_Penh
+        const timeZone = (user as { timeZone?: string }).timeZone || 'Asia/Phnom_Penh';
+        const zonedDate = toZonedTime(tokenExpiryUtc, timeZone);
+        const formattedExpiry = format(zonedDate, 'yyyy-MM-dd HH:mm zzz', { timeZone: timeZone as Timezone });
 
         const html = `
             <p>Hello,</p>
             <p>You requested a password reset. Please click the link below to reset your password:</p>
             <p><a href="${resetLink}">${resetLink}</a></p>
-            <p><strong>This link will expire at ${formattedExpiry} (Asia/Phnom_Penh time)</strong></p>
+            <p><strong>This link will expire at ${formattedExpiry} (${timeZone} time)</strong></p>
             <p>If you didn’t request this, you can ignore this email.</p>
         `;
 
