@@ -95,7 +95,7 @@ export default function AddressesFormPage() {
                           field.name.slice(1)}
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder={`Enter ${field}`} {...field} />
+                        <Input placeholder={`Enter ${field.name}`} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
