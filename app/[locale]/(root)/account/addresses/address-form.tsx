@@ -118,7 +118,7 @@ export default function AddressesFormPage() {
                           : "Phone Number"}
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder={`Enter ${field}`} {...field} />
+                        <Input placeholder={`Enter ${field.name}`} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
