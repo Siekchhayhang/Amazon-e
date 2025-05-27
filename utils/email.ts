@@ -1,9 +1,9 @@
-import { Resend } from 'resend';
 import { getSetting } from '@/lib/actions/setting.actions';
 import { getUserByEmail } from '@/lib/actions/user.actions';
-import { toZonedTime, format } from 'date-fns-tz';
-import { Timezone } from 'next-intl'; // Ensure this import is correct based on your setup
 import { addHours } from 'date-fns'; // Import addHours for easier date manipulation
+import { format, toZonedTime } from 'date-fns-tz';
+import { Timezone } from 'next-intl'; // Ensure this import is correct based on your setup
+import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -65,6 +65,9 @@ export async function sendVerificationEmail(email: string, token: string) {
             <body>
                 <div class="container">
                     <div class="header">
+                         <div class="logo">
+                            <img src="${siteUrl}/Collection.png" alt="${siteName} Logo" style="max-width: 150px; height: auto;">
+                        </div>
                         <h1>Welcome to ${siteName}!</h1>
                     </div>
                     <div class="content">
@@ -143,6 +146,9 @@ export async function sendResetPasswordEmail(email: string, token: string) {
             <body>
                 <div class="container">
                     <div class="header">
+                        <div class="logo">
+                            <img src="${siteUrl}/Collection.png" alt="${siteName} Logo" style="max-width: 150px; height: auto;">
+                        </div>
                         <h1>Password Reset for ${siteName}</h1>
                     </div>
                     <div class="content">
