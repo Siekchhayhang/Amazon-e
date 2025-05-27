@@ -60,13 +60,14 @@ export async function sendVerificationEmail(email: string, token: string) {
                     .button { background-color: #007bff; color: white !important; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-size: 16px; display: inline-block; }
                     .footer { text-align: center; font-size: 0.9em; color: #777; margin-top: 20px; }
                     .expiry-note { font-size: 0.9em; color: #888; }
+                    .logo { margin-bottom: 15px; }
                 </style>
             </head>
             <body>
                 <div class="container">
                     <div class="header">
                          <div class="logo">
-                            <img src="${siteUrl}/Collection.png" alt="${siteName} Logo" style="max-width: 150px; height: auto;">
+                            <img src="${siteUrl}/Collection.png" alt="${siteName}" style="max-width: 150px; height: auto;">
                         </div>
                         <h1>Welcome to ${siteName}!</h1>
                     </div>
@@ -141,13 +142,14 @@ export async function sendResetPasswordEmail(email: string, token: string) {
                     .button { background-color: #d9534f; color: white !important; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-size: 16px; display: inline-block; }
                     .footer { text-align: center; font-size: 0.9em; color: #777; margin-top: 20px; }
                     .expiry-note { font-size: 0.9em; color: #888; }
+                    .logo { margin-bottom: 15px; }
                 </style>
             </head>
             <body>
                 <div class="container">
                     <div class="header">
                         <div class="logo">
-                            <img src="${siteUrl}/Collection.png" alt="${siteName} Logo" style="max-width: 150px; height: auto;">
+                            <img src="${siteUrl}/Collection.png" alt="${siteName}" style="max-width: 150px; height: auto;">
                         </div>
                         <h1>Password Reset for ${siteName}</h1>
                     </div>
