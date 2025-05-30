@@ -13,17 +13,19 @@ import { GoogleSignInForm } from "./google-signin-form";
 
 export const metadata: Metadata = { title: "Sign In" };
 
-export default async function SignInPage(props: {
-  searchParams: Promise<{ callbackUrl: string }>;
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: { callbackUrl?: string };
 }) {
-  const searchParams = await props.searchParams;
   const { site } = await getSetting();
+  const callbackUrl = searchParams.callbackUrl ?? "/";
 
-  const { callbackUrl = "/" } = searchParams;
+  const safeCallbackUrl = callbackUrl.startsWith("/") ? callbackUrl : "/";
 
   const session = await auth();
   if (session) {
-    return redirect(callbackUrl);
+    return redirect(safeCallbackUrl);
   }
 
   return (
