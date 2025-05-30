@@ -30,7 +30,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   cookies: {
     sessionToken: {
-      name: `__Secure-next-auth.session-token`,
+      //name: `__Secure-next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
@@ -60,12 +60,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!user || !user.password) return null
 
-        const isMatch = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        )
+        if (user && user.password) {
+          const isMatch = await bcrypt.compare(
+            credentials.password as string,
+            user.password
+          )
+          if (!isMatch) return null
+        }
 
-        if (!isMatch) return null
 
         // 🧠 Password is correct — now check 2FA
         if (user.isTwoFactorEnabled) {
