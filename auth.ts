@@ -27,10 +27,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: {
     strategy: 'jwt',
     maxAge: 15 * 60, // 15 minutes
+    updateAge: 5 * 60, // 5 minutes
   },
   cookies: {
     sessionToken: {
-      //name: `__Secure-next-auth.session-token`,
+      name: `__Secure-next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
@@ -54,18 +55,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         await connectToDatabase()
-        if (credentials == null) return null
+        if (credentials == null) throw new Error('Invalid email or password');
 
         const user = await User.findOne({ email: credentials.email })
 
-        if (!user || !user.password) return null
+        if (!user || !user.password) throw new Error('Invalid email or password');
 
         if (user && user.password) {
           const isMatch = await bcrypt.compare(
             credentials.password as string,
             user.password
           )
-          if (!isMatch) return null
+          if (!isMatch) throw new Error('Invalid email or password');
         }
 
 

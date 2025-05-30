@@ -178,7 +178,7 @@ export async function registerUserWithEmailVerification(userSignUp: IUserSignUp)
 
     await User.create({
       ...userSignUp,
-      password: await bcrypt.hash(userSignUp.password, 5),
+      password: await bcrypt.hash(userSignUp.password, 10),
       isVerified: false,
       verificationToken,
       verificationTokenExpires: tokenExpires,
