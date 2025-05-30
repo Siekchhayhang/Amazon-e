@@ -57,13 +57,25 @@ export default function CredentialsSignInForm() {
   const onSubmit = async (data: IUserSignIn) => {
     setIsSubmitting(true);
     try {
-      await signInWithCredentials({ ...data });
-      redirect(callbackUrl);
+      const result = await signInWithCredentials({ ...data });
+
+      if (result?.error) {
+        toast({
+          title: "Error",
+          description: result.error,
+          variant: "destructive",
+        });
+        return;
+      }
+      console.log("signIn result", result);
+      if (result?.ok) {
+        redirect(callbackUrl); // ✅ redirect only on success
+      }
     } catch (error) {
       if (isRedirectError(error)) throw error;
       toast({
         title: "Error",
-        description: "Invalid email or password",
+        description: "Something went wrong",
         variant: "destructive",
       });
     } finally {

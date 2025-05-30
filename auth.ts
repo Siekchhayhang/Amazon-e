@@ -57,13 +57,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (credentials == null) return null
 
         const user = await User.findOne({ email: credentials.email })
+        console.log('User found:', user);
 
-        if (!user || !user.password) return null
+        if (!user || !user.password) {
+          console.log('User not found:', user);
+          return null
+        }
 
         const isMatch = await bcrypt.compare(
           credentials.password as string,
           user.password
         )
+        console.log('Password match:', isMatch);
 
         if (!isMatch) return null
 
@@ -87,9 +92,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
         }
 
-        // 🎯 Passed password and 2FA checks
         return {
-          id: user._id,
+          id: user._id.toString(),
           name: user.name,
           email: user.email,
           role: user.role,
