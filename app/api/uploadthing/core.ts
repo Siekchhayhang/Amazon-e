@@ -1,8 +1,21 @@
 import { auth } from '@/auth'
 import { createUploadthing, type FileRouter } from 'uploadthing/next'
+import { S3Client } from "@aws-sdk/client-s3";
 import { UploadThingError } from 'uploadthing/server'
 
 const f = createUploadthing()
+
+// Cloudflare R2 Configuration
+export const r2client = new S3Client({
+  endpoint: `https://${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  region: 'us-east-1',// Required by SDK, but R2 doesn't have regions in the same way
+  credentials: {
+    accessKeyId: process.env.CLOUDFLARE_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.CLOUDFLARE_SECRET_ACCESS_KEY!,
+
+  }
+});
+
 
 // FileRouter for your app, can contain multiple FileRoutes
 export const ourFileRouter = {
