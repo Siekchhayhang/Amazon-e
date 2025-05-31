@@ -43,8 +43,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: MongoDBAdapter(client),
   providers: [
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
@@ -64,10 +62,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!user || !user.password) return null
 
         if (user && user.password) {
+          console.log('User found, checking password...', user.email)
+          console.log(
+            'Password provided:',
+            credentials.password)
           const isMatch = await bcrypt.compare(
             credentials.password as string,
             user.password
           )
+          console.log('Password match result:', isMatch)
           if (!isMatch) return null
         }
 
