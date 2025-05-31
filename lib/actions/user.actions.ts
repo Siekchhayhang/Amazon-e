@@ -30,7 +30,7 @@ export async function registerUser(userSignUp: IUserSignUp) {
     await connectToDatabase()
     await User.create({
       ...user,
-      password: await bcrypt.hash(user.password, 5),
+      password: await bcrypt.hash(user.password, 10),
     })
     return { success: true, message: 'User created successfully' }
   } catch (error) {
@@ -178,7 +178,7 @@ export async function registerUserWithEmailVerification(userSignUp: IUserSignUp)
 
     await User.create({
       ...userSignUp,
-      password: await bcrypt.hash(userSignUp.password, 5),
+      password: await bcrypt.hash(userSignUp.password, 10),
       isVerified: false,
       verificationToken,
       verificationTokenExpires: tokenExpires,
