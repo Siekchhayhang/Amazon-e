@@ -62,8 +62,6 @@ export default function CredentialsSignInForm() {
         title: "Success",
         description: "You have successfully signed in.",
       });
-      console.log("Sign in successful:", data);
-      console.log("Redirecting to:", callbackUrl);
       redirect(callbackUrl);
     } catch (error) {
       if (isRedirectError(error)) throw error;
