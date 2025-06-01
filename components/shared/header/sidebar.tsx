@@ -26,7 +26,7 @@ export default async function Sidebar({
 
   const t = await getTranslations();
   return (
-    <Drawer direction={getDirection(locale) === "rtl" ? "left" : "right"}>
+    <Drawer direction={getDirection(locale) === "rtl" ? "left" : "left"}>
       <DrawerTrigger className="header-button flex items-center !p-2  ">
         <MenuIcon className="h-5 w-5 mr-1" />
         {t("Header.All")}
