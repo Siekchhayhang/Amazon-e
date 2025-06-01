@@ -29,17 +29,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     maxAge: 15 * 60, // 15 minutes
     updateAge: 5 * 60, // 5 minutes
   },
-  cookies: {
-    sessionToken: {
-      name: `__Secure-next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-      },
-    },
-  },
   adapter: MongoDBAdapter(client),
   providers: [
     Google({
@@ -47,9 +36,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
     CredentialsProvider({
       credentials: {
-        email: {
-          type: 'email',
-        },
+        email: { type: 'email' },
         password: { type: 'password' },
         twoFactorCode: { type: 'text' },
       },
@@ -62,15 +49,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!user || !user.password) return null
 
         if (user && user.password) {
-          console.log('User found, checking password...', user.email)
-          console.log(
-            'Password provided:',
-            credentials.password)
           const isMatch = await bcrypt.compare(
             credentials.password as string,
             user.password
           )
-          console.log('Password match result:', isMatch)
           if (!isMatch) return null
         }
 
