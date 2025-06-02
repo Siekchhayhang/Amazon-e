@@ -11,7 +11,7 @@ import { z } from 'zod'
 import { connectToDatabase } from '../db'
 import User, { IUser } from '../db/models/user.model'
 import { formatError } from '../utils'
-import { UserSignUpSchema, UserUpdateSchema } from '../validator'
+import { UserPasswordUpdateSchema, UserSignUpSchema, UserUpdateSchema } from '../validator'
 import { getSetting } from './setting.actions'
 import { addHours } from 'date-fns'
 
@@ -90,6 +90,37 @@ export async function updateUserName(user: IUserName) {
     }
   } catch (error) {
     return { success: false, message: formatError(error) }
+  }
+}
+
+// UPDATE PASSWORD
+export async function updateUserPassword(values: z.infer<typeof UserPasswordUpdateSchema>) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, message: 'Not authenticated.' };
+    }
+
+    await connectToDatabase();
+    const user = await User.findById(session.user.id).select('+password'); // Select the password field
+
+    if (!user?.password) {
+      return { success: false, message: 'User password not found in database.' };
+    }
+
+    const isCurrentPasswordCorrect = await bcrypt.compare(values.oldPassword, user.password);
+    if (!isCurrentPasswordCorrect) {
+      return { success: false, message: 'Incorrect current password.' };
+    }
+
+    const hashedPassword = await bcrypt.hash(values.newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+    revalidatePath('/account/manage');
+    return { success: true, message: 'Password updated successfully.' };
+
+  } catch (error) {
+    return { success: false, message: formatError(error) };
   }
 }
 

@@ -221,10 +221,20 @@ export const ForgotPasswordSchema = z.object({
 
 // RESET PASSWORD SCHEMA
 export const ResetPasswordSchema = z.object({
-  password: StrongPassword,
+  password: Password,
   confirmPassword: z.string(),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+// USER PASSWORD UPDATE SCHEMA
+export const UserPasswordUpdateSchema = z.object({
+  oldPassword: z.string().min(1, 'Current password is required'),
+  newPassword: Password,
+  confirmPassword: z.string(),
+}).refine(data => data.newPassword === data.confirmPassword, {
+  message: "New passwords don't match",
   path: ["confirmPassword"],
 });
 
