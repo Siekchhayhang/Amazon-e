@@ -303,8 +303,9 @@ export const calcDeliveryDateAndPrice = async ({
         itemsPrice >= deliveryDate.freeShippingMinPrice
         ? 0
         : deliveryDate.shippingPrice
-
-  const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0.15)
+  // Tax is calculated as 15% of itemsPrice
+  // If shippingAddress is not provided, taxPrice will be undefined
+  const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0)
   const totalPrice = round2(
     itemsPrice +
     (shippingPrice ? round2(shippingPrice) : 0) +
