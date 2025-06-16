@@ -1,9 +1,8 @@
-// app/sitemap.ts
-import { MetadataRoute } from 'next';
+import { NextResponse } from 'next/server';
 
-const baseUrl = 'https://collectionshop.it.com'; // **Verify this is your actual public domain**
+export async function GET() {
+    const baseUrl = 'https://collectionshop.it.com';
 
-export default function sitemap(): MetadataRoute.Sitemap { // No async needed for static array
     // Example static routes
     const routes = [
         '',
@@ -12,10 +11,21 @@ export default function sitemap(): MetadataRoute.Sitemap { // No async needed fo
         '/contact',
     ];
 
-    return routes.map(route => ({
-        url: `${baseUrl}${route}`,
-        lastModified: new Date(), // Use current date for simplicity
-        changeFrequency: 'monthly' as const,
-        priority: route === '' ? 1.0 : 0.7,
-    }));
+    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+ ${routes
+            .map(
+                (route) => `
+ <url>
+ <loc>${baseUrl}${route}</loc>
+ </url> `
+            )
+            .join('')}
+</urlset>`;
+
+    return new NextResponse(sitemap, {
+        headers: {
+            'Content-Type': 'application/xml',
+        },
+    });
 }
