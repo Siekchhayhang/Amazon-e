@@ -6,7 +6,6 @@ export default function robots(): MetadataRoute.Robots {
             userAgent: '*',
             allow: '/',
             disallow: ['/admin', '/api', '/auth', '/checkout', '/cart'],
-            crawlDelay: 2,
         },
         sitemap: 'https://collectionshop.it.com/sitemap.xml',
     }
