@@ -99,21 +99,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     jwt: async ({ token, user, trigger, session }) => {
+      await connectToDatabase()
+      // If the user just signed in
       if (user) {
-        if (!user.name) {
-          await connectToDatabase()
-          await User.findByIdAndUpdate(user.id, {
-            name: user.name || user.email!.split('@')[0],
-            role: 'user',
-          })
-        }
-        token.name = user.name || user.email!.split('@')[0]
         token.role = (user as { role: string }).role
+        token.name = user.name || user.email!.split('@')[0]
+      } else if (token?.sub) {
+        // 🔁 Always fetch role from DB using token.sub (user ID)
+        const dbUser = await User.findById(token.sub).select('role')
+        if (dbUser) {
+          token.role = dbUser.role
+        }
       }
 
-      if (session?.user?.name && trigger === 'update') {
+      // Optional: if session update is triggered
+      if (trigger === 'update' && session?.user?.name) {
         token.name = session.user.name
       }
+
       return token
     },
     session: async ({ session, user, trigger, token }) => {

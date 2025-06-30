@@ -26,6 +26,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const signUpDefaultValues =
   process.env.NODE_ENV === "development"
@@ -43,6 +44,7 @@ const signUpDefaultValues =
       };
 
 export default function CredentialsSignInForm() {
+  const router = useRouter();
   const {
     setting: { site },
   } = useSettingStore();
@@ -71,6 +73,7 @@ export default function CredentialsSignInForm() {
         email: data.email,
         password: data.password,
       });
+      router.refresh();
       redirect(callbackUrl);
     } catch (error) {
       if (isRedirectError(error)) {
