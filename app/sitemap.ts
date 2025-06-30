@@ -8,61 +8,34 @@ type Product = {
     updatedAt: string | Date;
 };
 
-// Assumes your category object has a 'slug' for robust URL generation
-type Category = {
-    slug: string;
-    // include other category properties if needed, e.g., name
-};
+// This type is no longer strictly needed for categories but can be kept for clarity
 
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = 'https://collectionshop.it.com';
-
-    // Recommendation Implemented: Use a static date for pages that don't change often.
-    // This could be the date of the last major site update or launch date.
     const lastModifiedStatic = new Date('2024-01-01');
 
-    // --- Static Pages ---
+    // --- Static Pages (No changes needed here) ---
     const staticPages: MetadataRoute.Sitemap = [
         {
             url: baseUrl,
-            lastModified: new Date(), // Homepage is dynamic, so new Date() is appropriate here.
+            lastModified: new Date(),
             changeFrequency: 'daily',
             priority: 1.0,
         },
         {
-            url: `${baseUrl}/products`, // All products listing page
-            lastModified: new Date(), // This page changes daily as products are added/updated.
+            url: `${baseUrl}/products`,
+            lastModified: new Date(),
             changeFrequency: 'daily',
             priority: 0.9,
         },
-        {
-            url: `${baseUrl}/about`,
-            lastModified: lastModifiedStatic,
-            changeFrequency: 'monthly',
-            priority: 0.8,
-        },
-        {
-            url: `${baseUrl}/contact`,
-            lastModified: lastModifiedStatic,
-            changeFrequency: 'monthly',
-            priority: 0.8,
-        },
-        {
-            url: `${baseUrl}/terms`,
-            lastModified: lastModifiedStatic,
-            changeFrequency: 'yearly',
-            priority: 0.5,
-        },
-        {
-            url: `${baseUrl}/privacy`,
-            lastModified: lastModifiedStatic,
-            changeFrequency: 'yearly',
-            priority: 0.5,
-        },
+        { url: `${baseUrl}/about`, lastModified: lastModifiedStatic, changeFrequency: 'monthly', priority: 0.8 },
+        { url: `${baseUrl}/contact`, lastModified: lastModifiedStatic, changeFrequency: 'monthly', priority: 0.8 },
+        { url: `${baseUrl}/terms`, lastModified: lastModifiedStatic, changeFrequency: 'yearly', priority: 0.5 },
+        { url: `${baseUrl}/privacy`, lastModified: lastModifiedStatic, changeFrequency: 'yearly', priority: 0.5 },
     ];
 
-    // --- Dynamic Product Pages ---
+    // --- Dynamic Product Pages (No changes needed here) ---
     const productPages: MetadataRoute.Sitemap = await (async () => {
         try {
             console.log('Fetching products for sitemap...');
@@ -70,8 +43,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             let currentPage = 1;
             let totalPages = 1;
 
-            // Recommendation Implemented: Loop through all pages to fetch every product.
-            // This assumes your getAllProducts function returns a pagination object.
             do {
                 const response = await getAllProducts({
                     query: 'all',
@@ -82,7 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
                 if (response && response.products) {
                     allProducts.push(...response.products);
-                    totalPages = response.totalPages || 1; // Get total pages from the response
+                    totalPages = response.totalPages || 1;
                 }
 
                 currentPage++;
@@ -92,40 +63,42 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
             return allProducts.map((product) => ({
                 url: `${baseUrl}/product/${product.slug}`,
-                lastModified: new Date(product.updatedAt), // Use the product's actual update date
+                lastModified: new Date(product.updatedAt),
                 changeFrequency: 'weekly',
                 priority: 0.9,
             }));
 
         } catch (error) {
-            // Recommendation Implemented: Added robust error handling.
             console.error('Failed to fetch products for sitemap:', error);
-            return []; // Return an empty array on error to prevent build failure
+            return [];
         }
     })();
 
 
-    // --- Dynamic Category Pages ---
+    // --- Dynamic Category Pages (CORRECTED LOGIC) ---
     const categoryPages: MetadataRoute.Sitemap = await (async () => {
         try {
             console.log('Fetching categories for sitemap...');
-            // Assumes getAllCategories returns an array of Category objects: { slug: string }[]
-            const categories: Category[] = await getAllCategories();
-            console.log(`Fetched ${categories.length} categories successfully.`);
+            // 1. Fetch the category names, which will be a string array.
+            const categoryNames: string[] = await getAllCategories();
+            console.log(`Fetched ${categoryNames.length} categories successfully.`);
 
-            // Recommendation Implemented: Use a 'slug' field from the database for categories.
-            // This is more reliable than generating it on the fly.
-            return categories.map((category) => ({
-                url: `${baseUrl}/category/${category.slug}`,
-                lastModified: new Date(), // Category pages are dynamic, new products can be added daily.
-                changeFrequency: 'daily',
-                priority: 0.8,
-            }));
+            // 2. Map over the array of strings to create the sitemap entries.
+            return categoryNames.map((categoryName) => {
+                // 3. Create a URL-safe slug from the category name.
+                const slug = encodeURIComponent(categoryName.toLowerCase().replace(/\s+/g, '-'));
+
+                return {
+                    url: `${baseUrl}/category/${slug}`,
+                    lastModified: new Date(), // Category pages are dynamic
+                    changeFrequency: 'daily',
+                    priority: 0.8,
+                };
+            });
 
         } catch (error) {
-            // Recommendation Implemented: Added robust error handling.
             console.error('Failed to fetch categories for sitemap:', error);
-            return []; // Return an empty array on error
+            return [];
         }
     })();
 
