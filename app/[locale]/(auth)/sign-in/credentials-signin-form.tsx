@@ -1,5 +1,18 @@
 "use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+
+import { toast } from "@/hooks/use-toast";
+import {
+  resendVerificationEmail,
+  signInWithCredentials,
+} from "@/lib/actions/user.actions";
+import { UserSignInSchema } from "@/lib/validator";
+import { IUserSignIn } from "@/types";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,19 +24,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import useSettingStore from "@/hooks/use-setting-store";
-import { signInWithCredentials } from "@/lib/actions/user.actions";
-import { IUserSignIn } from "@/types";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-
-import { toast } from "@/hooks/use-toast";
-import { UserSignInSchema } from "@/lib/validator";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
-
-import { useState } from "react"; // at the top
-import { Eye, EyeOff } from "lucide-react"; // optional: for toggle icon
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const signInDefaultValues =
   process.env.NODE_ENV === "development"
@@ -38,12 +39,8 @@ const signInDefaultValues =
 
 export default function CredentialsSignInForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const {
-    setting: { site },
-  } = useSettingStore();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
@@ -54,6 +51,7 @@ export default function CredentialsSignInForm() {
 
   const { control, handleSubmit } = form;
 
+  // --- ✨ This is the updated onSubmit function ---
   const onSubmit = async (data: IUserSignIn) => {
     setIsSubmitting(true);
     try {
@@ -63,84 +61,108 @@ export default function CredentialsSignInForm() {
         description: "You have successfully signed in.",
       });
       redirect(callbackUrl);
-    } catch (error) {
-      if (isRedirectError(error)) throw error;
-      toast({
-        title: "Error",
-        description: "Invalid email or password",
-        variant: "destructive",
-      });
-    } finally {
+    } catch (error: unknown) {
       setIsSubmitting(false);
+      if (isRedirectError(error)) throw error;
+
+      // ✨ Handle specific error for unverified email
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "message" in error &&
+        typeof (error as { message: string }).message === "string" &&
+        ((error as { message: string }).message === "NEXT_REDIRECT" ||
+          (error as { message: string }).message.includes("EMAIL_NOT_VERIFIED"))
+      ) {
+        toast({
+          title: "Email Not Verified",
+          description: "Please check your inbox to verify your email address.",
+          variant: "destructive",
+          action: (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                await resendVerificationEmail(data.email);
+                toast({ title: "Verification email resent successfully." });
+              }}
+            >
+              Resend Email
+            </Button>
+          ),
+        });
+      } else {
+        // Handle all other errors (e.g., wrong password)
+        toast({
+          title: "Sign-In Error",
+          description: "Invalid email or password. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <input type="hidden" name="callbackUrl" value={callbackUrl} />
-        <div className="space-y-6">
-          <FormField
-            control={control}
-            name="email"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter email address" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Enter email address"
+                  type="email"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={control}
-            name="password"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter password"
-                      maxLength={30}
-                      {...field}
-                    />
-                    <button
-                      type="button"
-                      onClick={togglePasswordVisibility}
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4 " />
-                      ) : (
-                        <Eye className="h-4 w-4  " />
-                      )}
-                    </button>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter password"
+                    maxLength={30}
+                    {...field}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <div>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Signing In..." : "Sign In"}
-            </Button>
-          </div>
-          <div className="text-sm">
-            By signing in, you agree to {site.name}&apos;s{" "}
-            <Link href="/page/conditions-of-use">Conditions of Use</Link> and{" "}
-            <Link href="/page/privacy-policy">Privacy Notice.</Link>
-          </div>
-        </div>
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSubmitting ? "Signing In..." : "Sign In"}
+        </Button>
       </form>
     </Form>
   );
