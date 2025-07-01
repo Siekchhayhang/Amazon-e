@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "@/hooks/use-toast";
 import { UserSignUpSchema } from "@/lib/validator";
 import { IUserSignUp } from "@/types";
+// ✨ 1. Import the correct server action
 import { registerUserWithEmailVerification } from "@/lib/actions/user.actions";
 
 import { Button } from "@/components/ui/button";
@@ -46,10 +47,10 @@ export default function SignUpForm() {
     formState: { isSubmitting },
   } = form;
 
-  // --- ✨ CORRECTED SUBMIT LOGIC ---
+  // --- ✨ 2. This is the corrected onSubmit logic ---
   const onSubmit = async (data: IUserSignUp) => {
     try {
-      // 1. Use the action that sends a verification email
+      // Use the action that creates an unverified user and sends an email
       const res = await registerUserWithEmailVerification(data);
 
       if (!res.success) {
@@ -61,14 +62,14 @@ export default function SignUpForm() {
         return;
       }
 
-      // 2. On success, redirect to the verify-request page
-      //    Pass the email so the page can display it.
+      // On success, DO NOT sign in. Instead, redirect to the verify-request page.
       toast({
         title: "Registration Successful",
         description: "Please check your email to activate your account.",
       });
       router.push(`/verify-request?email=${data.email}`);
-    } catch {
+    } catch (error) {
+      console.error("Sign-up error:", error);
       toast({
         title: "An unexpected error occurred",
         description: "Please try again.",
