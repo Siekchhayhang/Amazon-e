@@ -1,5 +1,6 @@
 import { getSetting } from '@/lib/actions/setting.actions';
 import { getUserByEmail } from '@/lib/actions/user.actions';
+import { APP_NAME, SENDER_EMAIL } from '@/lib/constants';
 import { addHours } from 'date-fns'; // Import addHours for easier date manipulation
 import { format, toZonedTime } from 'date-fns-tz';
 import { Timezone } from 'next-intl'; // Ensure this import is correct based on your setup
@@ -10,7 +11,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 async function sendEmail(to: string, subject: string, html: string) {
     try {
         const response = await resend.emails.send({
-            from: `${process.env.NEXT_PUBLIC_APP_NAME} ${process.env.SENDER_EMAIL}`, // Use a verified sender
+            from: `${APP_NAME} ${SENDER_EMAIL}`, // Use a verified sender
             to,
             subject,
             html,
