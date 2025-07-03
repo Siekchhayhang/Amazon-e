@@ -30,7 +30,7 @@ export async function registerUser(userSignUp: IUserSignUp) {
     await connectToDatabase()
     await User.create({
       ...user,
-      password: await bcrypt.hash(user.password, 5),
+      password: await bcrypt.hash(user.password, 10),
     })
     return { success: true, message: 'User created successfully' }
   } catch (error) {
@@ -61,11 +61,19 @@ export async function updateUser(user: z.infer<typeof UserUpdateSchema>) {
     await connectToDatabase()
     const dbUser = await User.findById(user._id)
     if (!dbUser) throw new Error('User not found')
+
+    const previousRole = dbUser.role; // Store previous role for revalidation
     dbUser.name = user.name
     dbUser.email = user.email
     dbUser.role = user.role
     const updatedUser = await dbUser.save()
     revalidatePath('/admin/users')
+
+    // If user downgraded themselves, force sign out
+    const session = await auth()
+    if (session?.user?.id === user._id && previousRole !== user.role) {
+      await signOut({ redirect: true })
+    }
     return {
       success: true,
       message: 'User updated successfully',
@@ -209,7 +217,7 @@ export async function registerUserWithEmailVerification(userSignUp: IUserSignUp)
 
     await User.create({
       ...userSignUp,
-      password: await bcrypt.hash(userSignUp.password, 5),
+      password: await bcrypt.hash(userSignUp.password, 10),
       isVerified: false,
       verificationToken,
       verificationTokenExpires: tokenExpires,
