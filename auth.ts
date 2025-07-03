@@ -8,6 +8,8 @@ import User from './lib/db/models/user.model'
 
 import NextAuth, { type DefaultSession } from 'next-auth'
 import authConfig from './auth.config'
+import Resend from "next-auth/providers/resend"
+import { sendVerificationEmail } from './utils/email'
 
 declare module 'next-auth' {
   interface Session {
@@ -23,6 +25,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: '/sign-in',
     newUser: '/sign-up',
     error: '/sign-in',
+    verifyRequest: '/verify-request',
   },
   session: {
     strategy: 'jwt',
@@ -41,6 +44,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   providers: [
+    Resend({
+      async sendVerificationRequest({ identifier: email, url }) {
+        await connectToDatabase()
+        if (!email) {
+          throw new Error('Email is required')
+        }
+        await sendVerificationEmail(email, url)
+      },
+      async generateVerificationToken() {
+        return crypto.randomUUID()
+      },
+    }),
     Google({
       allowDangerousEmailAccountLinking: true,
     }),
@@ -57,6 +72,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const user = await User.findOne({ email: credentials.email })
 
         if (!user || !user.password) return null
+
+        if (!user.isVerified) {
+          throw new Error('EMAIL_NOT_VERIFIED');
+        }
 
         if (user && user.password) {
           const isMatch = await bcrypt.compare(
