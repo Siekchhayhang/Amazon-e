@@ -264,42 +264,65 @@ export async function registerUserWithEmailVerification(userSignUp: IUserSignUp)
 export async function verifyEmail(token: string) {
   try {
     await connectToDatabase();
+
     const user = await User.findOne({ verificationToken: token });
+
     if (!user || !user.verificationTokenExpires || new Date() > user.verificationTokenExpires) {
       throw new Error('Invalid or expired token');
+    }
+
+    if (user.emailVerified) {
+      return { success: false, error: 'Email is already verified' };
     }
 
     user.emailVerified = true;
     user.verificationToken = undefined;
     user.verificationTokenExpires = undefined;
+
     await user.save();
 
     return { success: true, message: 'Email verified successfully' };
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'An unknown error occurred',
+    };
   }
 }
+
 
 export async function resendVerificationEmail(email: string) {
   try {
     await connectToDatabase();
+
     const user = await User.findOne({ email });
     if (!user) throw new Error('User not found');
     if (user.emailVerified) throw new Error('User already verified');
 
-    const verificationToken = await generateToken();
-    const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    // If token still valid, reuse it
+    let token = user.verificationToken;
+    let expiry = user.verificationTokenExpires;
 
-    user.verificationToken = verificationToken;
-    user.verificationTokenExpires = tokenExpires;
-    await user.save();
+    const isTokenExpired = !expiry || new Date() > expiry;
+    if (isTokenExpired) {
+      token = await generateToken();
+      expiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+      user.verificationToken = token;
+      user.verificationTokenExpires = expiry;
+      await user.save();
+    }
 
-    await sendVerificationEmail(email, verificationToken);
+    await sendVerificationEmail(email, token!);
+
     return { success: true, message: 'Verification email resent successfully' };
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'An unknown error occurred',
+    };
   }
 }
+
 
 export async function requestPasswordReset(email: string) {
   try {
