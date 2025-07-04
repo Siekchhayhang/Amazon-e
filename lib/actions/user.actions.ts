@@ -132,9 +132,34 @@ export async function updateUserPassword(values: z.infer<typeof UserPasswordUpda
   }
 }
 
+// export async function signInWithCredentials(user: IUserSignIn) {
+//   return await signIn('credentials', { ...user, redirect: false })
 export async function signInWithCredentials(user: IUserSignIn) {
-  return await signIn('credentials', { ...user, redirect: false })
+  await connectToDatabase();
+
+  const existingUser = await User.findOne({ email: user.email }).select('+password');
+
+  if (!existingUser) {
+    throw new Error('Invalid email or password');
+  }
+
+  const isPasswordCorrect = await bcrypt.compare(user.password, existingUser.password);
+  if (!isPasswordCorrect) {
+    throw new Error('Invalid email or password');
+  }
+
+  // 🔒 Check if email is verified
+  if (!existingUser.isVerified) {
+    throw new Error('Please verify your email before signing in');
+  }
+
+  // Proceed to sign in
+  return await signIn('credentials', {
+    ...user,
+    redirect: false,
+  });
 }
+
 export const SignInWithGoogle = async () => {
   await signIn('google')
 }
@@ -215,7 +240,7 @@ export async function registerUserWithEmailVerification(userSignUp: IUserSignUp)
     const verificationToken = await generateToken();
     const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // Token expiry set to 24 hours
 
-    await User.create({
+    const newUser = await User.create({
       ...userSignUp,
       password: await bcrypt.hash(userSignUp.password, 10),
       isVerified: false,
@@ -223,7 +248,13 @@ export async function registerUserWithEmailVerification(userSignUp: IUserSignUp)
       verificationTokenExpires: tokenExpires,
     });
 
-    await sendVerificationEmail(userSignUp.email, verificationToken);
+    try {
+      await sendVerificationEmail(userSignUp.email, verificationToken);
+    } catch {
+      // 🧹 Cleanup: Delete user if email fails to send
+      await User.findByIdAndDelete(newUser._id);
+      return { success: false, message: "Error sending verification email. Please try again later." };
+    }
     return { success: true, message: 'User registered. Please verify your email.' };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' }; // Providing specific error messages
