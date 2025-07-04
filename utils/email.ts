@@ -1,12 +1,12 @@
 import { getSetting } from '@/lib/actions/setting.actions';
 import { getUserByEmail } from '@/lib/actions/user.actions';
-import { APP_NAME, SENDER_EMAIL } from '@/lib/constants';
+import { APP_NAME, RESEND_API_KEY, SENDER_EMAIL } from '@/lib/constants';
 import { addHours } from 'date-fns'; // Import addHours for easier date manipulation
 import { format, toZonedTime } from 'date-fns-tz';
 import { Timezone } from 'next-intl'; // Ensure this import is correct based on your setup
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY as string);
+const resend = new Resend(RESEND_API_KEY as string);
 
 async function sendEmail(to: string, subject: string, html: string) {
     try {
@@ -33,7 +33,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 
         const { site: { url: siteUrl, name: siteName } } = await getSetting();
 
-        const verificationLink = `${siteUrl}/verify-email?token=${token}`;
+        const verificationLink = `${siteUrl}/verify-email?t=${token}`;
 
         // Calculate expiry time (24 hours from now)
         const tokenExpiryUtc = addHours(new Date(), 24);
@@ -74,7 +74,7 @@ export async function sendVerificationEmail(email: string, token: string) {
                     </div>
                     <div class="content">
                         <p>Hello ${user.name || user.email},</p>
-                        <p>Thank you for registering with ${siteName}. To activate your account and get started, please verify your email address by clicking the button below:</p>
+                        <p>Thank you for registering with ${siteName}. To activate your account and get started, Please confirm your email address by clicking the link below:</p>
                         <div class="button-container">
                             <a href="${verificationLink}" class="button">Verify My Email</a>
                         </div>
@@ -114,7 +114,7 @@ export async function sendResetPasswordEmail(email: string, token: string) {
 
         const { site: { url: siteUrl, name: siteName } } = await getSetting();
 
-        const resetLink = `${siteUrl}/reset-password?token=${token}`;
+        const resetLink = `${siteUrl}/reset-password?t=${token}`;
         // The reset password token expiry should ideally come from the user object
         // that was updated in requestPasswordReset to store the exact expiry.
         // For now, assuming a 24-hour default if not available,
