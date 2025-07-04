@@ -1,19 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "@/hooks/use-toast";
 import { UserSignUpSchema } from "@/lib/validator";
 import { IUserSignUp } from "@/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 // ✨ 1. Import the correct server action
 import { registerUserWithEmailVerification } from "@/lib/actions/user.actions";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import {
   Form,
   FormControl,
@@ -22,6 +20,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const signUpDefaultValues = {
