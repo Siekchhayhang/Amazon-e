@@ -6,7 +6,7 @@ import { format, toZonedTime } from 'date-fns-tz';
 import { Timezone } from 'next-intl'; // Ensure this import is correct based on your setup
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY as string);
 
 async function sendEmail(to: string, subject: string, html: string) {
     try {

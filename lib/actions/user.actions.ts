@@ -149,7 +149,7 @@ export async function signInWithCredentials(user: IUserSignIn) {
   }
 
   // 🔒 Check if email is verified
-  if (!existingUser.isVerified) {
+  if (!existingUser.emailVerified) {
     throw new Error('Please verify your email before signing in');
   }
 
@@ -243,7 +243,7 @@ export async function registerUserWithEmailVerification(userSignUp: IUserSignUp)
     const newUser = await User.create({
       ...userSignUp,
       password: await bcrypt.hash(userSignUp.password, 10),
-      isVerified: false,
+      emailVerified: false,
       verificationToken,
       verificationTokenExpires: tokenExpires,
     });
@@ -269,7 +269,7 @@ export async function verifyEmail(token: string) {
       throw new Error('Invalid or expired token');
     }
 
-    user.isVerified = true;
+    user.emailVerified = true;
     user.verificationToken = undefined;
     user.verificationTokenExpires = undefined;
     await user.save();
@@ -285,7 +285,7 @@ export async function resendVerificationEmail(email: string) {
     await connectToDatabase();
     const user = await User.findOne({ email });
     if (!user) throw new Error('User not found');
-    if (user.isVerified) throw new Error('User already verified');
+    if (user.emailVerified) throw new Error('User already verified');
 
     const verificationToken = await generateToken();
     const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);

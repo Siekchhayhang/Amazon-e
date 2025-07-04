@@ -6,7 +6,7 @@ export interface IUser extends Document, IUserInput {
   createdAt: Date
   updatedAt: Date
   shippingAddress?: ShippingAddress
-  isVerified: boolean;
+  emailVerified: boolean;
   verificationToken?: string;
   verificationTokenExpires?: Date;
   resetPasswordToken?: string;
