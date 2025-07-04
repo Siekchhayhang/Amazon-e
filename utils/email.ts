@@ -11,7 +11,7 @@ const resend = new Resend(process.env.RESEND_API_KEY as string);
 async function sendEmail(to: string, subject: string, html: string) {
     try {
         const response = await resend.emails.send({
-            from: `${APP_NAME} ${SENDER_EMAIL}`, // Use a verified sender
+            from: `${APP_NAME} <${SENDER_EMAIL}>`, // Use a verified sender
             to,
             subject,
             html,
@@ -68,7 +68,7 @@ export async function sendVerificationEmail(email: string, token: string) {
                 <div class="container">
                     <div class="header">
                          <div class="logo">
-                            <img src="${siteUrl}/Collection.png" alt="${siteName}" style="max-width: 150px; height: auto;">
+                            <img src="${siteUrl}" alt="${siteName}" style="max-width: 150px; height: auto;">
                         </div>
                         <h1>Welcome to ${siteName}!</h1>
                     </div>
