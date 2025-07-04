@@ -52,7 +52,6 @@ export default function SignUpForm() {
     try {
       // Use the action that creates an unverified user and sends an email
       const res = await registerUserWithEmailVerification(data);
-
       if (!res.success) {
         toast({
           title: "Registration Failed",
@@ -61,13 +60,12 @@ export default function SignUpForm() {
         });
         return;
       }
-
       // On success, DO NOT sign in. Instead, redirect to the verify-request page.
       toast({
         title: "Registration Successful",
         description: "Please check your email to activate your account.",
       });
-      router.push(`/verify-request?email=${data.email}`);
+      router.push(`/verify-email?email=${data.email}`);
     } catch (error) {
       console.error("Sign-up error:", error);
       toast({

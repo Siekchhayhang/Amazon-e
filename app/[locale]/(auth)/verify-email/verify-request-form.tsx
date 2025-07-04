@@ -16,7 +16,6 @@ import {
 import { resendVerificationEmail } from "@/lib/actions/user.actions";
 import { toast } from "@/hooks/use-toast";
 
-// A small wrapper component to handle Suspense for useSearchParams
 export default function VerifyRequestForm() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
@@ -25,20 +24,20 @@ export default function VerifyRequestForm() {
   const [isResent, setIsResent] = useState(false);
 
   if (!email) {
-    // If no email is in the URL, guide the user back to sign up
-    // This is a fallback for edge cases.
     return (
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md mx-auto mt-12 shadow-lg">
         <CardHeader className="text-center">
-          <div className="mx-auto bg-primary/10 p-3 rounded-full">
-            <MailCheck className="h-10 w-10 text-primary" />
+          <div className="mx-auto bg-red-100 p-3 rounded-full">
+            <MailCheck className="h-8 w-8 text-red-500" />
           </div>
-          <CardTitle className="mt-4 text-2xl">Something went wrong</CardTitle>
-          <CardDescription>
+          <CardTitle className="mt-4 text-xl font-semibold text-red-600">
+            Something went wrong
+          </CardTitle>
+          <CardDescription className="mt-1 text-sm text-muted-foreground">
             We couldn&apos;t identify your email. Please try signing up again.
           </CardDescription>
         </CardHeader>
-        <CardFooter className="flex justify-center">
+        <CardFooter className="flex justify-center mt-4">
           <Button asChild>
             <Link href="/sign-up">Back to Sign Up</Link>
           </Button>
@@ -56,7 +55,6 @@ export default function VerifyRequestForm() {
         toast({
           title: "Verification email sent!",
           description: "Please check your inbox (and spam folder).",
-          variant: "default",
         });
         setIsResent(true);
       } else {
@@ -68,7 +66,7 @@ export default function VerifyRequestForm() {
       }
     } catch {
       toast({
-        title: "An unexpected error occurred.",
+        title: "Unexpected error",
         description: "Please try again later.",
         variant: "destructive",
       });
@@ -78,39 +76,50 @@ export default function VerifyRequestForm() {
   };
 
   return (
-    <Card className="w-full max-w-md shadow-lg">
+    <Card className="w-full max-w-md mx-auto mt-12 shadow-lg">
       <CardHeader className="text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
           <MailCheck className="h-10 w-10 text-green-600" />
         </div>
-        <CardTitle className="mt-4 text-2xl font-bold">
+        <CardTitle className="mt-4 text-2xl font-bold text-green-700">
           Verify Your Email
         </CardTitle>
-        <CardDescription className="mt-2 text-base text-muted-foreground">
+        <CardDescription className="mt-1 text-sm text-muted-foreground">
           We&apos;ve sent a verification link to{" "}
-          <span className="font-semibold text-primary">{email}</span>.
+          <span className="font-medium text-primary">{email}</span>.
         </CardDescription>
       </CardHeader>
-      <CardContent className="text-center">
-        <p className="text-muted-foreground">
-          Please click the link in the email to activate your account. This link
-          will expire in 24 hours.
+
+      <CardContent className="text-center space-y-4">
+        <p className="text-sm text-muted-foreground">
+          Please click the link in the email to activate your account.
+          <br />
+          The link expires in 24 hours.
         </p>
-        <p className="mt-4 text-sm text-muted-foreground">
-          Didn&apos;t receive the email? Check your spam folder or click below
-          to resend.
+        <p className="text-xs text-muted-foreground">
+          Didn&apos;t receive it? Check spam or resend it below.
         </p>
       </CardContent>
-      <CardFooter className="flex flex-col gap-4">
+
+      <CardFooter className="flex flex-col gap-3 p-6">
         <Button
           onClick={handleResend}
           disabled={isLoading || isResent}
           className="w-full"
         >
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isResent ? "Email Sent!" : "Resend Verification Email"}
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Sending...
+            </>
+          ) : isResent ? (
+            "Email Sent!"
+          ) : (
+            "Resend Verification Email"
+          )}
         </Button>
-        <Button variant="ghost" className="w-full" asChild>
+
+        <Button variant="ghost" className="w-full text-sm" asChild>
           <Link href="/sign-in">Back to Sign In</Link>
         </Button>
       </CardFooter>
