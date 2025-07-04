@@ -62,12 +62,17 @@ export default function CredentialsSignInForm() {
         title: "Success",
         description: "You have successfully signed in.",
       });
+
       redirect(callbackUrl);
     } catch (error) {
       if (isRedirectError(error)) throw error;
+
       toast({
-        title: "Error",
-        description: "Invalid email or password",
+        title: "Sign In Failed",
+        description:
+          error === "Please verify your email before signing in"
+            ? "Your email is not verified. Please check your inbox."
+            : "Invalid email or password",
         variant: "destructive",
       });
     } finally {
