@@ -150,8 +150,9 @@ export const CartSchema = z.object({
 })
 
 const StrongPassword = z.string()
+  .trim()
   .min(8, "Password must be at least 8 characters")
-  .max(30)
+  .max(30, "Password must be at most 30 characters")
   .regex(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
     "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
