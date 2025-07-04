@@ -2,7 +2,7 @@
 
 import { auth, signIn, signOut } from '@/auth'
 import { IUserName, IUserSignIn, IUserSignUp, ShippingAddress } from '@/types'
-import { sendResetPasswordEmail, sendVerificationEmail } from '@/utils/email'
+import { sendResetPasswordEmail, sendVerificationEmail } from '@/emails'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import { revalidatePath } from 'next/cache'
@@ -14,6 +14,7 @@ import { formatError } from '../utils'
 import { UserPasswordUpdateSchema, UserSignUpSchema, UserUpdateSchema } from '../validator'
 import { getSetting } from './setting.actions'
 import { addHours } from 'date-fns'
+
 
 
 // CREATE
@@ -249,7 +250,7 @@ export async function registerUserWithEmailVerification(userSignUp: IUserSignUp)
     });
 
     try {
-      await sendVerificationEmail(userSignUp.email, verificationToken);
+      await sendVerificationEmail({ email: userSignUp.email, token: verificationToken });
     } catch {
       // 🧹 Cleanup: Delete user if email fails to send
       await User.findByIdAndDelete(newUser._id);
@@ -312,7 +313,7 @@ export async function resendVerificationEmail(email: string) {
       await user.save();
     }
 
-    await sendVerificationEmail(email, token!);
+    await sendVerificationEmail({ email, token: token! });
 
     return { success: true, message: 'Verification email resent successfully' };
   } catch (error) {
@@ -352,7 +353,7 @@ export async function requestPasswordReset(email: string) {
 
     await user.save();
 
-    await sendResetPasswordEmail(email, resetToken);
+    await sendResetPasswordEmail({ email, token: resetToken });
     return { success: true, message: 'Password reset email sent' };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' };
