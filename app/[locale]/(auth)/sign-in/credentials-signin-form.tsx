@@ -56,11 +56,24 @@ export default function CredentialsSignInForm() {
 
   const onSubmit = async (data: IUserSignIn) => {
     setIsSubmitting(true);
+
     try {
-      await signInWithCredentials({ ...data });
+      const result = await signInWithCredentials({ ...data });
+
+      if (!result.success) {
+        toast({
+          title: "Sign In Failed",
+          description: result.message.includes("verify")
+            ? "Your email is not verified. Please check your inbox."
+            : result.message,
+          variant: "destructive",
+        });
+        return; // ⛔ Prevent redirect on failure
+      }
+
       toast({
         title: "Success",
-        description: "You have successfully signed in.",
+        description: result.message || "You have successfully signed in.",
       });
 
       redirect(callbackUrl);
@@ -68,11 +81,8 @@ export default function CredentialsSignInForm() {
       if (isRedirectError(error)) throw error;
 
       toast({
-        title: "Sign In Failed",
-        description:
-          error === "Please verify your email before signing in"
-            ? "Your email is not verified. Please check your inbox."
-            : "Invalid email or password",
+        title: "Sign In Error",
+        description: "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
