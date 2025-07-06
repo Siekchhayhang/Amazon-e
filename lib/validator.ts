@@ -220,6 +220,10 @@ export const ForgotPasswordSchema = z.object({
   email: Email,
 })
 
+export const VerifyEmailSchema = z.object({
+  token: z.string().min(1, 'Verification token is required'),
+});
+
 // RESET PASSWORD SCHEMA
 export const ResetPasswordSchema = z.object({
   password: Password,

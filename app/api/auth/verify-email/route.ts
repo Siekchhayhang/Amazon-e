@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { verifyEmail } from '@/lib/actions/user.actions';
+import { NEXT_PUBLIC_SERVER_URL } from '@/lib/constants';
 
 // API Route: /api/verify-email?token=abc123
 export async function GET(req: Request) {
@@ -17,8 +18,8 @@ export async function GET(req: Request) {
     }
 
     // ✅ Option 1: Return JSON (for API-based handling)
-    return NextResponse.json({ success: true, message: result.message });
+    //return NextResponse.json({ success: true, message: result.message });
 
     // ✅ Option 2 (optional): Redirect to sign-in page with a success query
-    // return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SERVER_URL}/sign-in?verified=success`);
+    return NextResponse.redirect(`${NEXT_PUBLIC_SERVER_URL}/sign-in?verified=success`);
 }

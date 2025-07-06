@@ -204,5 +204,17 @@
     "Status": "Statut",
     "Actions": "Actions",
     "Details": "Détails"
+  },
+  "VerifyEmail": {
+    "title": "Vérifiez votre e-mail",
+    "description": "Entrez l'OTP envoyé à votre adresse e-mail pour vérifier votre compte.",
+    "verifying": "Vérification...",
+    "sendOtp": "Envoyer l'OTP",
+    "sendingOtp": "Envoi de l'OTP...",
+    "sendOtpSuccess": "OTP envoyé",
+    "sendOtpSuccessDescription": "Vérifiez votre e-mail pour l'OTP.",
+    "sendOtpError": "Erreur lors de l'envoi de l'OTP",
+    "email": "E-mail",
+    "email-placeholder": "Entrez votre e-mail"
   }
 }

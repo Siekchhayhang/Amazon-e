@@ -4,6 +4,7 @@ export const APP_SLOGAN =
 export const APP_DESCRIPTION =
     process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
     'An Amazon clone built with Next.js and MongoDB'
+export const NEXT_PUBLIC_SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL
 
 export const SENDER_NAME = process.env.SENDER_NAME || 'support'
 export const SENDER_EMAIL = process.env.SENDER_EMAIL || 'onboarding@resend.dev'

@@ -209,5 +209,42 @@
     "Status": "Status",
     "Actions": "Actions",
     "Details": "Details"
+  },
+  "ChangePassword": {
+    "title": "Change Your Password",
+    "description": "Update your account password below. For security reasons, you might be asked to log in again after changing your password.",
+    "fields": [
+      {
+        "label": "Current Password",
+        "type": "password",
+        "placeholder": "Current Password"
+      },
+      {
+        "label": "New Password",
+        "type": "password",
+        "placeholder": "New Password"
+      },
+      {
+        "label": "Confirm New Password",
+        "type": "password",
+        "placeholder": "Confirm New Password"
+      }
+    ],
+    "button": {
+      "label": "Update Password",
+      "action": "updatePassword"
+    }
+  },
+  "VerifyEmail": {
+    "title": "Verify Your Email",
+    "description": "Enter the OTP sent to your email address to verify your account.",
+    "verifying": "Verifying...",
+    "sendOtp": "Send OTP",
+    "sendingOtp": "Sending OTP...",
+    "sendOtpSuccess": "OTP Sent",
+    "sendOtpSuccessDescription": "Check your email for the OTP.",
+    "sendOtpError": "Error Sending OTP",
+    "email": "Email",
+    "email-placeholder": "Enter your email"
   }
 }
