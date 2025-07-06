@@ -138,18 +138,28 @@ export async function signInWithCredentials(user: IUserSignIn) {
 
   const existingUser = await User.findOne({ email: user.email });
 
-  if (!existingUser) {
+  if (!existingUser || !existingUser.password) {
     return { success: false, message: 'Invalid email or password.' };
   }
 
+  // ✅ Enforce email verification
   if (!existingUser.emailVerified) {
     return {
       success: false,
       message: 'Please verify your email before signing in.',
     };
   }
-  return await signIn('credentials', { ...user, redirect: false })
+
+  // ✅ Password check (same as what NextAuth does in authorize)
+  const isMatch = await bcrypt.compare(user.password, existingUser.password);
+  if (!isMatch) {
+    return { success: false, message: 'Invalid email or password.' };
+  }
+
+  // ✅ Everything is valid — allow sign-in
+  return await signIn('credentials', { ...user, redirect: false });
 }
+
 export const SignInWithGoogle = async () => {
   await signIn('google')
 }
