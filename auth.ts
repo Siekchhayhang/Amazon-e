@@ -66,6 +66,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (!isMatch) return null
         }
 
+        // ✅ Enforce email verification
+        if (!user.emailVerified) {
+          throw new Error('EMAIL_NOT_VERIFIED');
+        }
+
 
         // 🧠 Password is correct — now check 2FA
         if (user.isTwoFactorEnabled) {

@@ -134,6 +134,20 @@ export async function updateUserPassword(values: z.infer<typeof UserPasswordUpda
 }
 
 export async function signInWithCredentials(user: IUserSignIn) {
+  await connectToDatabase();
+
+  const existingUser = await User.findOne({ email: user.email });
+
+  if (!existingUser) {
+    return { success: false, message: 'Invalid email or password.' };
+  }
+
+  if (!existingUser.emailVerified) {
+    return {
+      success: false,
+      message: 'Please verify your email before signing in.',
+    };
+  }
   return await signIn('credentials', { ...user, redirect: false })
 }
 export const SignInWithGoogle = async () => {
