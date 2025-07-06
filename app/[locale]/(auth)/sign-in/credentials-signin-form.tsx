@@ -1,5 +1,5 @@
 "use client";
-import { redirect, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -54,12 +54,12 @@ export default function CredentialsSignInForm() {
 
   const { control, handleSubmit } = form;
 
+  const router = useRouter();
+
   const onSubmit = async (data: IUserSignIn) => {
     setIsSubmitting(true);
-
     try {
       const result = await signInWithCredentials({ ...data });
-
       if (!result.success) {
         toast({
           title: "Sign In Failed",
@@ -68,17 +68,17 @@ export default function CredentialsSignInForm() {
             : result.message,
           variant: "destructive",
         });
-        return; // ⛔ Prevent redirect on failure
+        return;
       }
-
       toast({
         title: "Success",
         description: result.message || "You have successfully signed in.",
       });
-
-      redirect(callbackUrl);
+      router.push(callbackUrl);
     } catch (error) {
       if (isRedirectError(error)) throw error;
+
+      console.error("SignIn Error:", error);
 
       toast({
         title: "Sign In Error",
