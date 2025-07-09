@@ -41,7 +41,7 @@ export default function VerifyEmailClient({ token }: Props) {
       } else {
         setStatus("error");
         setMessage(
-          result.message ??
+          result.error ??
             "Verification failed. The link may be invalid or expired."
         );
       }

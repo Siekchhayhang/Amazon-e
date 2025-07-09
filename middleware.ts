@@ -16,7 +16,7 @@ const publicPages = [
   '/forgot-password',
   '/reset-password',
   '/access-denied',
-  '/verify-email',
+    '/verify-email/(.*)',
 ];
 
 const intlMiddleware = createMiddleware(routing)
