@@ -2,7 +2,8 @@
 
 import { auth, signIn, signOut } from '@/auth'
 import { IUserName, IUserSignIn, IUserSignUp, ShippingAddress } from '@/types'
-import { sendResetPasswordEmail, sendVerificationEmail } from '@/emails'
+//import { sendResetPasswordEmail, sendVerificationEmail } from '@/emails'
+import { sendResetPasswordEmail, sendVerificationEmail } from '@/utils/email'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import { revalidatePath } from 'next/cache'
@@ -246,7 +247,7 @@ export async function registerUserWithEmailVerification(userSignUp: IUserSignUp)
     });
 
     try {
-      await sendVerificationEmail({ email: userSignUp.email, token: verificationToken });
+      await sendVerificationEmail(userSignUp.email, verificationToken);
     } catch {
       // 🧹 Cleanup: Delete user if email fails to send
       await User.findByIdAndDelete(newUser._id);
@@ -309,7 +310,7 @@ export async function resendVerificationEmail(email: string) {
       await user.save();
     }
 
-    await sendVerificationEmail({ email, token: token! });
+    await sendVerificationEmail(email, token!);
 
     return { success: true, message: 'Verification email resent successfully' };
   } catch (error) {
@@ -349,7 +350,7 @@ export async function requestPasswordReset(email: string) {
 
     await user.save();
 
-    await sendResetPasswordEmail({ email, token: resetToken });
+    await sendResetPasswordEmail(email, resetToken);
     return { success: true, message: 'Password reset email sent' };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'An unknown error occurred' };
