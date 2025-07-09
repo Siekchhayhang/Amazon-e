@@ -20,11 +20,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "@/hooks/use-toast";
 import { UserSignInSchema } from "@/lib/validator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
 
-import { useState } from "react"; // at the top
-import { Eye, EyeOff } from "lucide-react"; // optional: for toggle icon
-
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 const signInDefaultValues =
   process.env.NODE_ENV === "development"
     ? {
@@ -59,25 +57,24 @@ export default function CredentialsSignInForm() {
   const onSubmit = async (data: IUserSignIn) => {
     setIsSubmitting(true);
     try {
-      const result = await signInWithCredentials({ ...data });
+      const result = await signInWithCredentials(data);
+
       if (!result.success) {
         toast({
           title: "Sign In Failed",
-          description: result.message.includes("verify")
-            ? "Your email is not verified. Please check your inbox."
-            : result.message,
+          description: result.message,
           variant: "destructive",
         });
         return;
       }
+
       toast({
         title: "Success",
-        description: result.message || "You have successfully signed in.",
+        description: result.message,
       });
+
       router.push(callbackUrl);
     } catch (error) {
-      if (isRedirectError(error)) throw error;
-
       console.error("SignIn Error:", error);
 
       toast({

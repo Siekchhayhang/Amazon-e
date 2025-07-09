@@ -134,31 +134,47 @@ export async function updateUserPassword(values: z.infer<typeof UserPasswordUpda
 }
 
 export async function signInWithCredentials(user: IUserSignIn) {
-  await connectToDatabase();
+  const res = await signIn("credentials", {
+    ...user,
+    redirect: false,
+  });
 
-  const existingUser = await User.findOne({ email: user.email });
-
-  if (!existingUser || !existingUser.password) {
-    return { success: false, message: 'Invalid email or password.' };
-  }
-
-  // ✅ Enforce email verification
-  if (!existingUser.emailVerified) {
+  if (!res) {
     return {
       success: false,
-      message: 'Please verify your email before signing in.',
+      message: "No response from server.",
     };
   }
 
-  // ✅ Password check (same as what NextAuth does in authorize)
-  const isMatch = await bcrypt.compare(user.password, existingUser.password);
-  if (!isMatch) {
-    return { success: false, message: 'Invalid email or password.' };
+  if (res.ok) {
+    return {
+      success: true,
+      message: "Signed in successfully.",
+    };
   }
 
-  // ✅ Everything is valid — allow sign-in
-  return await signIn('credentials', { ...user, redirect: false });
+  // Custom error handling based on 'error' string from authorize()
+  let message = "Invalid email or password.";
+  switch (res.error) {
+    case "EMAIL_NOT_VERIFIED":
+      message = "Please verify your email before signing in.";
+      break;
+    case "TWO_FACTOR_CODE_REQUIRED":
+      message = "Two-factor code required.";
+      break;
+    case "INVALID_TWO_FACTOR_CODE":
+      message = "Invalid two-factor authentication code.";
+      break;
+    default:
+      if (res.error) message = res.error;
+  }
+
+  return {
+    success: false,
+    message,
+  };
 }
+
 
 export const SignInWithGoogle = async () => {
   await signIn('google')
