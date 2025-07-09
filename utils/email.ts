@@ -33,7 +33,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 
         const { site: { url: siteUrl, name: siteName } } = await getSetting();
 
-        const verificationLink = `${siteUrl}/verify-email?t=${token}`;
+        const verificationLink = `${siteUrl}/verify-email/${token}`;
 
         // Calculate expiry time (24 hours from now)
         const tokenExpiryUtc = addHours(new Date(), 24);

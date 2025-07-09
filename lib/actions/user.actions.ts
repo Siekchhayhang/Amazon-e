@@ -134,30 +134,26 @@ export async function updateUserPassword(values: z.infer<typeof UserPasswordUpda
 }
 
 export async function signInWithCredentials(user: IUserSignIn) {
-  await connectToDatabase();
-
-  const existingUser = await User.findOne({ email: user.email });
-
-  if (!existingUser || !existingUser.password) {
-    return { success: false, message: 'Invalid email or password.' };
+  try {
+    // The authorize callback in auth.ts handles all the logic.
+    // signIn will throw an error if authorize returns null or throws an error.
+    await signIn('credentials', { ...user, redirect: false })
+    return { success: true, message: 'You have successfully signed in.' }
+  } catch (error: any) {
+    // In next-auth v5, errors are thrown. We can inspect the error object.
+    const errorMessage =
+      error.cause?.err?.message || 'Something went wrong. Please try again.'
+    if (errorMessage === 'EMAIL_NOT_VERIFIED') {
+      return {
+        success: false,
+        message: 'Your email is not verified. Please check your inbox.',
+      }
+    }
+    if (error.type === 'CredentialsSignin') {
+      return { success: false, message: 'Invalid email or password.' }
+    }
+    return { success: false, message: errorMessage }
   }
-
-  // ✅ Enforce email verification
-  if (!existingUser.emailVerified) {
-    return {
-      success: false,
-      message: 'Please verify your email before signing in.',
-    };
-  }
-
-  // ✅ Password check (same as what NextAuth does in authorize)
-  const isMatch = await bcrypt.compare(user.password, existingUser.password);
-  if (!isMatch) {
-    return { success: false, message: 'Invalid email or password.' };
-  }
-
-  // ✅ Everything is valid — allow sign-in
-  return await signIn('credentials', { ...user, redirect: false });
 }
 
 export const SignInWithGoogle = async () => {
