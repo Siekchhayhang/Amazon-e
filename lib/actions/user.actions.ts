@@ -139,17 +139,18 @@ export async function signInWithCredentials(user: IUserSignIn) {
     // signIn will throw an error if authorize returns null or throws an error.
     await signIn('credentials', { ...user, redirect: false })
     return { success: true, message: 'You have successfully signed in.' }
-  } catch (error: any) {
+  } catch (error) {
     // In next-auth v5, errors are thrown. We can inspect the error object.
     const errorMessage =
-      error.cause?.err?.message || 'Something went wrong. Please try again.'
+      (error instanceof Error ? error.message : undefined) || 'Something went wrong. Please try again.'
     if (errorMessage === 'EMAIL_NOT_VERIFIED') {
       return {
         success: false,
         message: 'Your email is not verified. Please check your inbox.',
       }
     }
-    if (error.type === 'CredentialsSignin') {
+    // Optionally, check error type if error is an object
+    if (typeof error === 'object' && error !== null && 'type' in error && (error as Record<string, unknown>).type === 'CredentialsSignin') {
       return { success: false, message: 'Invalid email or password.' }
     }
     return { success: false, message: errorMessage }
