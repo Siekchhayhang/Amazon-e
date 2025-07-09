@@ -48,7 +48,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { type: 'email' },
         password: { type: 'password' },
-        verifyEmail: { type: 'text' },
         twoFactorCode: { type: 'text' },
       },
       async authorize(credentials) {

@@ -134,47 +134,31 @@ export async function updateUserPassword(values: z.infer<typeof UserPasswordUpda
 }
 
 export async function signInWithCredentials(user: IUserSignIn) {
-  const res = await signIn("credentials", {
-    ...user,
-    redirect: false,
-  });
+  await connectToDatabase();
 
-  if (!res) {
+  const existingUser = await User.findOne({ email: user.email });
+
+  if (!existingUser || !existingUser.password) {
+    return { success: false, message: 'Invalid email or password.' };
+  }
+
+  // ✅ Enforce email verification
+  if (!existingUser.emailVerified) {
     return {
       success: false,
-      message: "No response from server.",
+      message: 'Please verify your email before signing in.',
     };
   }
 
-  if (res.ok) {
-    return {
-      success: true,
-      message: "Signed in successfully.",
-    };
+  // ✅ Password check (same as what NextAuth does in authorize)
+  const isMatch = await bcrypt.compare(user.password, existingUser.password);
+  if (!isMatch) {
+    return { success: false, message: 'Invalid email or password.' };
   }
 
-  // Custom error handling based on 'error' string from authorize()
-  let message = "Invalid email or password.";
-  switch (res.error) {
-    case "EMAIL_NOT_VERIFIED":
-      message = "Please verify your email before signing in.";
-      break;
-    case "TWO_FACTOR_CODE_REQUIRED":
-      message = "Two-factor code required.";
-      break;
-    case "INVALID_TWO_FACTOR_CODE":
-      message = "Invalid two-factor authentication code.";
-      break;
-    default:
-      if (res.error) message = res.error;
-  }
-
-  return {
-    success: false,
-    message,
-  };
+  // ✅ Everything is valid — allow sign-in
+  return await signIn('credentials', { ...user, redirect: false });
 }
-
 
 export const SignInWithGoogle = async () => {
   await signIn('google')

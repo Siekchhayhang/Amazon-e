@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { formatNumberWithDecimal } from './utils'
+
 // Common
 const MongoId = z
   .string()
@@ -166,14 +167,12 @@ const UserName = z
 const Email = z.string().min(1, 'Email is required').email('Email is invalid')
 const Password = StrongPassword
 const UserRole = z.string().min(1, 'role is required')
-const UserVerifyEmail = z.string().min(1, 'Verification token is required')
 
 export const UserUpdateSchema = z.object({
   _id: MongoId,
   name: UserName,
   email: Email,
   role: UserRole,
-  verifyEmail: UserVerifyEmail,
   isTwoFactorEnabled: z.boolean().default(false),
   twoFactorSecret: z.string().optional(),
 })
@@ -202,7 +201,6 @@ export const UserInputSchema = z.object({
 export const UserSignInSchema = z.object({
   email: Email,
   password: Password,
-  verifyEmail: UserVerifyEmail,
   twoFactorCode: z.string().length(6, 'Two-factor code must be exactly 6 digits').optional(),
 
 })
