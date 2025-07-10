@@ -8,6 +8,7 @@ import { routing } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 import { getSetting } from "@/lib/actions/setting.actions";
 import { cookies } from "next/headers";
+import { NEXT_PUBLIC_SERVER_URL } from "@/lib/constants";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,17 +20,48 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export async function generateMetadata() {
+// export async function generateMetadata() {
+//   const {
+//     site: { slogan, name, description, url },
+//   } = await getSetting();
+//   return {
+//     title: {
+//       template: `%s | ${name}`,
+//       default: `${name}. ${slogan}`,
+//     },
+//     description: description,
+//     metadataBase: new URL(url),
+//   };
+// }
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { locale: string };
+}) {
   const {
     site: { slogan, name, description, url },
   } = await getSetting();
+
+  const baseUrl = url ?? NEXT_PUBLIC_SERVER_URL;
+  const locale = params.locale;
+
+  const alternates: Record<string, string> = {};
+  routing.locales.forEach((loc) => {
+    alternates[loc] = `${baseUrl}/${loc}`;
+  });
+
   return {
     title: {
       template: `%s | ${name}`,
       default: `${name}. ${slogan}`,
     },
     description: description,
-    metadataBase: new URL(url),
+    metadataBase: new URL(baseUrl),
+    alternates: {
+      canonical: `${baseUrl}/${locale}`,
+      languages: alternates,
+    },
   };
 }
 
