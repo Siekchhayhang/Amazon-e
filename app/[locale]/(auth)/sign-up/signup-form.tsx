@@ -34,7 +34,7 @@ const signUpDefaultValues = {
 export default function SignUpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams.get("callbackUrl") || "/verify-email";
 
   const form = useForm<IUserSignUp>({
     resolver: zodResolver(UserSignUpSchema),
