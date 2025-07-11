@@ -57,35 +57,47 @@ export default function CredentialsSignInForm() {
   const router = useRouter();
 
   const onSubmit = async (data: IUserSignIn) => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      const result = await signInWithCredentials({ ...data })
+      const result = await signInWithCredentials({ ...data });
       if (!result.success) {
         toast({
-          title: 'Sign In Failed',
+          title: "Sign In Failed",
           description: result.message,
-          variant: 'destructive',
-        })
-        setIsSubmitting(false) // Also reset submitting state here
-        return
+          variant: "destructive",
+        });
+        setIsSubmitting(false); // Also reset submitting state here
+        return;
       }
       toast({
-        title: 'Success',
-        description: result.message || 'You have successfully signed in.',
-      })
-      router.push(callbackUrl)
+        title: "Success",
+        description: result.message || "You have successfully signed in.",
+      });
+      router.push(callbackUrl);
     } catch (error) {
-      if (isRedirectError(error)) throw error
+      if (isRedirectError(error)) throw error;
 
-      console.error('SignIn Error:', error)
+      console.error("SignIn Error:", error);
 
-      toast({
-        title: 'Sign In Error',
-        description: 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      })
+      if (
+        error instanceof Error &&
+        error.message.includes("TOO_MANY_REQUESTS")
+      ) {
+        toast({
+          title: "Too Many Attempts",
+          description:
+            "You have made too many sign-in attempts. Please try again later.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sign In Error",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   };
 

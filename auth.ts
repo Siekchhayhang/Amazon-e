@@ -5,6 +5,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { connectToDatabase } from './lib/db'
 import client from './lib/db/client'
 import User from './lib/db/models/user.model'
+import { checkRateLimit } from './lib/rate-limit'
 
 import NextAuth, { type DefaultSession } from 'next-auth'
 import authConfig from './auth.config'
@@ -50,9 +51,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { type: 'password' },
         twoFactorCode: { type: 'text' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         await connectToDatabase()
         if (credentials == null) return null
+
+        const ip = req.headers.get('x-forwarded-for') || '127.0.0.1'
+
+        const { success } = await checkRateLimit(ip, 'signin')
+        if (!success) {
+          throw new Error('TOO_MANY_REQUESTS')
+        }
 
         const user = await User.findOne({ email: credentials.email })
 
@@ -68,9 +76,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         // ✅ Enforce email verification
         if (!user.emailVerified) {
-          throw new Error('EMAIL_NOT_VERIFIED');
+          throw new Error('EMAIL_NOT_VERIFIED')
         }
-
 
         // 🧠 Password is correct — now check 2FA
         if (user.isTwoFactorEnabled) {
@@ -135,3 +142,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 })
+

@@ -10,6 +10,9 @@ export const SENDER_NAME = process.env.SENDER_NAME || 'support'
 export const SENDER_EMAIL = process.env.SENDER_EMAIL || 'onboarding@resend.dev'
 export const RESEND_API_KEY = process.env.RESEND_API_KEY
 
+export const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL
+export const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN
+
 export const USER_ROLES = ['Admin', 'User']
 export const COLORS = ['Gold', 'Green', 'Red']
 export const THEMES = ['Light', 'Dark', 'System']
