@@ -203,7 +203,9 @@
     "Total": "Total",
     "Status": "Statut",
     "Actions": "Actions",
-    "Details": "Détails"
+    "Details": "Détails",
+    "Download Reports": "Télécharger le rapports",
+    "Revenue": "Revenu"
   },
   "VerifyEmail": {
     "title": "Vérifiez votre e-mail",

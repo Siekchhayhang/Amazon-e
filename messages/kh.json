@@ -208,7 +208,9 @@
     "Total": "សរុប",
     "Status": "ស្ថានភាព",
     "Actions": "សកម្មភាព",
-    "Details": "ព័ត៌មានលម្អិត"
+    "Details": "ព័ត៌មានលម្អិត",
+    "Download Reports": "ទាញយក របាយការណ៍",
+    "Revenue": "ចំណូល"
   },
   "ChangePassword": {
     "title": "ផ្លាស់ប្ដូរលេខសម្ងាត់របស់អ្នក",

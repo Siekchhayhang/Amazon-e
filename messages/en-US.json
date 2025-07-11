@@ -208,7 +208,9 @@
     "Total": "Total",
     "Status": "Status",
     "Actions": "Actions",
-    "Details": "Details"
+    "Details": "Details",
+    "Download Reports": "Download Reports",
+    "Revenue": "Revenue"
   },
   "ChangePassword": {
     "title": "Change Your Password",
