@@ -114,7 +114,7 @@ export async function sendResetPasswordEmail(email: string, token: string) {
 
         const { site: { url: siteUrl, name: siteName } } = await getSetting();
 
-        const resetLink = `${siteUrl}/reset-password?t=${token}`;
+        const resetLink = `${siteUrl}/reset-password?${token}`;
         // The reset password token expiry should ideally come from the user object
         // that was updated in requestPasswordReset to store the exact expiry.
         // For now, assuming a 24-hour default if not available,
