@@ -1,21 +1,7 @@
 "use client";
-import {
-  BadgeDollarSign,
-  Barcode,
-  CreditCard,
-  Download,
-  Users,
-} from "lucide-react";
+import { BadgeDollarSign, Barcode, CreditCard, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-import Link from "next/link";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -32,22 +18,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { calculatePastDate, formatDateTime, formatNumber } from "@/lib/utils";
+import Link from "next/link";
 
 import SalesCategoryPieChart from "./sales-category-pie-chart";
 
-import React, { useEffect, useState, useTransition } from "react";
-import { DateRange } from "react-day-picker";
-import { getOrderSummary } from "@/lib/actions/order.actions";
-import SalesAreaChart from "./sales-area-chart";
-import { CalendarDateRangePicker } from "./date-range-picker";
-import { IOrderList } from "@/types";
 import ProductPrice from "@/components/shared/product/product-price";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getOrderSummary } from "@/lib/actions/order.actions";
+import { IOrderList } from "@/types";
+import { useEffect, useState, useTransition } from "react";
+import { DateRange } from "react-day-picker";
+import DashboardHeader from "./dashboard-header";
+import SalesAreaChart from "./sales-area-chart";
 import TableChart from "./table-chart";
 
 export default function OverviewReport() {
   const t = useTranslations("Admin");
-  const [date, setDate] = useState<DateRange | undefined>({
+  const [date] = useState<DateRange | undefined>({
     from: calculatePastDate(30),
     to: new Date(),
   });
@@ -100,58 +87,7 @@ export default function OverviewReport() {
     );
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="h1-bold">{t("Dashboard")}</h1>
-        <div className="flex items-center gap-2">
-          <CalendarDateRangePicker defaultDate={date} setDate={setDate} />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <Download className="mr-2" />
-                {t("Download Reports")}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <Link
-                  href={`/api/admin/reports/revenue?from=${date?.from?.toISOString()}&to=${date?.to?.toISOString()}`}
-                  download="revenue.csv"
-                  className="w-full"
-                >
-                  {t("Revenue")}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link
-                  href="/api/admin/reports/orders"
-                  download="orders.csv"
-                  className="w-full"
-                >
-                  {t("Orders")}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link
-                  href="/api/admin/reports/customers"
-                  download="customers.csv"
-                  className="w-full"
-                >
-                  {t("Customers")}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link
-                  href="/api/admin/reports/products"
-                  download="products.csv"
-                  className="w-full"
-                >
-                  {t("Products")}
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+      <DashboardHeader title={t("Dashboard")} />
       <div className="space-y-4">
         <div className="grid gap-4  grid-cols-2 lg:grid-cols-4">
           <Card>
