@@ -1,8 +1,8 @@
-import { getSetting } from '@/lib/actions/setting.actions';
-import { getUserByEmail } from '@/lib/actions/user.actions';
-import { addHours } from 'date-fns';
-import { format, toZonedTime } from 'date-fns-tz';
-import { Timezone } from 'next-intl';
+import { getSetting } from "@/lib/actions/setting.actions";
+import { getUserByEmail } from "@/lib/actions/user.actions";
+import { addHours } from "date-fns";
+import { format, toZonedTime } from "date-fns-tz";
+import { Timezone } from "next-intl";
 import {
   Body,
   Button,
@@ -25,9 +25,10 @@ export default async function VerificationEmail({
 }) {
   const user = await getUserByEmail(email);
   const { site } = await getSetting();
-  const verificationLink = `${site.url}/verify-email?t=${token}`;
+  const verificationLink = `${site.url}/verify-email/${token}`;
   const tokenExpiryUtc = addHours(new Date(), 24);
-  const timeZone = (user as { timeZone?: string }).timeZone || "Asia/Phnom_Penh";
+  const timeZone =
+    (user as { timeZone?: string }).timeZone || "Asia/Phnom_Penh";
   const zonedDate = toZonedTime(tokenExpiryUtc, timeZone);
   const formattedExpiry = format(zonedDate, "PPP p zzz", {
     timeZone: timeZone as Timezone,
@@ -50,8 +51,8 @@ export default async function VerificationEmail({
               </Text>
               <Button href={verificationLink}>Verify My Email</Button>
               <Text>
-                Alternatively, you can copy and paste the following link into your
-                web browser:
+                Alternatively, you can copy and paste the following link into
+                your web browser:
               </Text>
               <Text>{verificationLink}</Text>
               <Text className="text-sm text-gray-500">
