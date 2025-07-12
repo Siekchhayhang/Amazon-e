@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { getAllCategories, getAllProducts } from '@/lib/actions/product.actions';
 import { i18n } from '@/i18n-config';
+import { NEXT_PUBLIC_SERVER_URL } from '@/lib/constants';
 
 type Product = {
   slug: string;
@@ -8,7 +9,7 @@ type Product = {
 };
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://collectionshop.it.com';
+  const baseUrl = NEXT_PUBLIC_SERVER_URL;
   const lastModifiedStatic = new Date('2024-01-01');
 
   const allProducts: Product[] = [];
