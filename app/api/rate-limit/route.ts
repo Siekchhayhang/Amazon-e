@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { NextRequest, NextResponse } from 'next/server'
 
 function getClientIP(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for')
@@ -17,18 +17,31 @@ export async function POST(req: NextRequest) {
     const { success, remaining, reset } = await checkRateLimit(identifier, type)
 
     if (!success) {
+      const retryAfterSeconds = reset ? Math.ceil((reset - Date.now()) / 1000) : 10
+
       return NextResponse.json(
         {
           message: 'Too many requests. Please try again later.',
           retryAfter: new Date(reset ?? Date.now()).toISOString(),
         },
-        { status: 429 }
+        {
+          status: 429,
+          headers: {
+            'Retry-After': retryAfterSeconds.toString(),
+            'RateLimit-Remaining': '0',
+          },
+        }
       )
     }
 
     return NextResponse.json(
       { allowed: true, remaining },
-      { status: 200 }
+      {
+        status: 200,
+        headers: {
+          'RateLimit-Remaining': remaining.toString(),
+        },
+      }
     )
   } catch (error) {
     console.error('[RateLimit API] Error:', error)
