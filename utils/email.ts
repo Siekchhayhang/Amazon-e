@@ -1,6 +1,6 @@
 import { getSetting } from '@/lib/actions/setting.actions';
 import { getUserByEmail } from '@/lib/actions/user.actions';
-import { APP_NAME, RESEND_API_KEY, SENDER_EMAIL } from '@/lib/constants';
+import { APP_NAME, RESEND_API_KEY, SENDER_EMAIL, WEBSITE_LOGO } from '@/lib/constants';
 import { addHours } from 'date-fns'; // Import addHours for easier date manipulation
 import { format, toZonedTime } from 'date-fns-tz';
 import { Timezone } from 'next-intl'; // Ensure this import is correct based on your setup
@@ -68,7 +68,7 @@ export async function sendVerificationEmail(email: string, token: string) {
                 <div class="container">
                     <div class="header">
                          <div class="logo">
-                            <img src="${siteUrl}" alt="${siteName}" style="max-width: 150px; height: auto;">
+                            <img src="${siteUrl}/${WEBSITE_LOGO}" alt="${siteName}" style="max-width: 150px; height: auto;">
                         </div>
                         <h1>Welcome to ${siteName}!</h1>
                     </div>
@@ -80,7 +80,7 @@ export async function sendVerificationEmail(email: string, token: string) {
                         </div>
                         <p>Alternatively, you can copy and paste the following link into your web browser:</p>
                         <p><a href="${verificationLink}">${verificationLink}</a></p>
-                        <p class="expiry-note">This verification link is valid for **24 hours** and will expire at **${formattedExpiry}** (${timeZone} time).</p>
+                        <p class="expiry-note">This verification link is valid for <strong>24 hours</strong> and will expire at <strong>${formattedExpiry}</strong> (${timeZone} time).</p>
                         <p>If you did not create an account with ${siteName}, please ignore this email.</p>
                         <p>Thanks,</p>
                         <p>The ${siteName} Team</p>
@@ -150,7 +150,7 @@ export async function sendResetPasswordEmail(email: string, token: string) {
                 <div class="container">
                     <div class="header">
                         <div class="logo">
-                            <img src="${siteUrl}/Collection.png" alt="${siteName}" style="max-width: 150px; height: auto;">
+                            <img src="${siteUrl}/${WEBSITE_LOGO}" alt="${siteName}" style="max-width: 150px; height: auto;">
                         </div>
                         <h1>Password Reset for ${siteName}</h1>
                     </div>
@@ -162,7 +162,7 @@ export async function sendResetPasswordEmail(email: string, token: string) {
                         </div>
                         <p>Alternatively, you can copy and paste the following link into your web browser:</p>
                         <p><a href="${resetLink}">${resetLink}</a></p>
-                        <p class="expiry-note">This password reset link is valid for **24 hours** and will expire at **${formattedExpiry}** (${timeZone} time).</p>
+                        <p class="expiry-note">This password reset link is valid for <strong>24 hours</strong> and will expire at <strong>${formattedExpiry}</strong> (${timeZone} time).</p>
                         <p>If you did not request a password reset, please ignore this email and your password will remain unchanged.</p>
                         <p>Thanks,</p>
                         <p>The ${siteName} Team</p>
