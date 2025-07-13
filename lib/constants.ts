@@ -13,7 +13,7 @@ export const RESEND_API_KEY = process.env.RESEND_API_KEY
 export const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL
 export const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN
 
-export const WEBSITE_LOGO = process.env.NEXT_PUBLIC_WEBSITE_LOGO
+export const WEBSITE_LOGO = '/logo.png'
 
 export const NODE_ENV = process.env.NODE_ENV === 'production'
 
