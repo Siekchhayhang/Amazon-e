@@ -45,6 +45,7 @@
     "date-fns-tz": "^3.2.0",
     "embla-carousel-autoplay": "^8.5.1",
     "embla-carousel-react": "^8.5.1",
+    "exceljs": "^4.4.0",
     "ioredis": "^5.6.1",
     "lucide-react": "^0.468.0",
     "mongodb": "^6.12.0",
