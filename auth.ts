@@ -9,6 +9,7 @@ import { checkRateLimit } from './lib/rate-limit'
 
 import NextAuth, { type DefaultSession } from 'next-auth'
 import authConfig from './auth.config'
+import { NODE_ENV } from './lib/constants'
 
 declare module 'next-auth' {
   interface Session {
@@ -37,7 +38,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: NODE_ENV,
       },
     },
   },

@@ -7,7 +7,6 @@ import { Timezone } from 'next-intl'; // Ensure this import is correct based on 
 import { Resend } from 'resend';
 
 const resend = new Resend(RESEND_API_KEY as string);
-const { site: { url: siteUrl, name: siteName } } = await getSetting();
 
 async function sendEmail(to: string, subject: string, html: string) {
     try {
@@ -30,6 +29,7 @@ async function sendEmail(to: string, subject: string, html: string) {
 
 export async function sendVerificationEmail(email: string, token: string) {
     try {
+        const { site: { url: siteUrl, name: siteName } } = await getSetting();
         const user = await getUserByEmail(email); // This function currently throws an error if user not found, so no need for if(!user) check here.
 
         const verificationLink = `${siteUrl}/verify-email/${token}`;
@@ -107,6 +107,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 
 export async function sendResetPasswordEmail(email: string, token: string) {
     try {
+        const { site: { url: siteUrl, name: siteName } } = await getSetting();
         const user = await getUserByEmail(email);
         // Note: getUserByEmail is expected to throw if user is not found,
         // so no explicit if(!user) check needed here.

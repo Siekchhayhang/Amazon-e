@@ -15,6 +15,8 @@ export const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN
 
 export const WEBSITE_LOGO = process.env.NEXT_PUBLIC_WEBSITE_LOGO
 
+export const NODE_ENV = process.env.NODE_ENV === 'production'
+
 export const USER_ROLES = ['Admin', 'User']
 export const COLORS = ['Gold', 'Green', 'Red']
 export const THEMES = ['Light', 'Dark', 'System']
