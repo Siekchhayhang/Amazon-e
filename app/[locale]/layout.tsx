@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 
 export async function generateMetadata() {
   const {
-    site: { slogan, name, description, url },
+    site: { slogan, name, description, url, logo },
   } = await getSetting();
   return {
     title: {
@@ -30,6 +30,9 @@ export async function generateMetadata() {
     },
     description: description,
     metadataBase: new URL(url),
+    icons: {
+      icon: logo,
+    },
   };
 }
 
