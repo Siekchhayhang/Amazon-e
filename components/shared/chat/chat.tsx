@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import AIBotAnimation from "@/public/ai-bot.json";
-import { useChat } from "ai/react";
+import { useChat } from "@ai-sdk/react";
 import Lottie from "lottie-react";
 import { X } from "lucide-react";
 import { FormEvent, useState } from "react";
@@ -43,7 +43,7 @@ export default function Chat() {
         className="fixed bottom-4 right-4 z-50 rounded-full p-1 bg-popover shadow-lg transition-transform duration-300 hover:scale-110 active:scale-95 h-16 w-16 sm:h-20 sm:w-20 lg:h-24 lg:w-24"
       >
         {isOpen ? (
-          <X className="h-6 w-6" />
+          <Lottie animationData={AIBotAnimation} loop autoplay />
         ) : (
           <Lottie animationData={AIBotAnimation} loop autoplay />
         )}
