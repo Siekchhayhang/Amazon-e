@@ -5,6 +5,7 @@ import React from "react";
 import { Toaster } from "../ui/toaster";
 import AppInitializer from "./app-initializer";
 import CartSidebar from "./cart-sidebar";
+import Chat from "./chat/chat";
 import { ThemeProvider } from "./theme-provider";
 
 export default function ClientProviders({
@@ -31,6 +32,7 @@ export default function ClientProviders({
           <div>{children}</div>
         )}
         <Toaster />
+        <Chat />
       </ThemeProvider>
     </AppInitializer>
   );

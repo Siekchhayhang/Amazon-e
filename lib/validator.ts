@@ -318,6 +318,7 @@ export const SettingInputSchema = z.object({
     description: z.string().min(1, 'Description is required'),
     keywords: z.string().min(1, 'Keywords is required'),
     url: z.string().min(1, 'Url is required'),
+    favicon: z.string().min(1, 'Favicon is required'),
     email: z.string().min(1, 'Email is required'),
     phone: z.string().min(1, 'Phone is required'),
     author: z.string().min(1, 'Author is required'),
@@ -344,6 +345,12 @@ export const SettingInputSchema = z.object({
     .array(DeliveryDateSchema)
     .min(1, 'At least one delivery date is required'),
   defaultDeliveryDate: z.string().min(1, 'Delivery date is required'),
+  shop: z.object({
+    location: z.string().min(1, 'Location is required'),
+    openingTime: z.string().min(1, 'Opening time is required'),
+    closingTime: z.string().min(1, 'Closing time is required'),
+    isOpen: z.boolean().default(true),
+  })
 })
 
 export const TwoFactorVerifySchema = z.object({

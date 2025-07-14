@@ -11,9 +11,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/google": "^1.2.22",
     "@auth/mongodb-adapter": "^3.7.4",
     "@aws-sdk/client-s3": "^3.806.0",
     "@aws-sdk/s3-request-presigner": "^3.806.0",
+    "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^3.9.1",
     "@octokit/plugin-paginate-rest": "^12.0.0",
     "@octokit/rest": "^21.1.1",
@@ -38,6 +40,7 @@
     "@uploadthing/react": "^7.2.1",
     "@upstash/ratelimit": "^2.0.5",
     "@vercel/speed-insights": "^1.2.0",
+    "ai": "^4.3.17",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -47,6 +50,7 @@
     "embla-carousel-react": "^8.5.1",
     "exceljs": "^4.4.0",
     "ioredis": "^5.6.1",
+    "lottie-react": "^2.4.1",
     "lucide-react": "^0.468.0",
     "mongodb": "^6.12.0",
     "mongoose": "^8.9.0",
