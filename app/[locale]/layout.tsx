@@ -33,6 +33,7 @@ export async function generateMetadata() {
     icons: {
       icon: logo,
     },
+    manifest: "./manifest.json",
   };
 }
 

@@ -1,0 +1,23 @@
+{
+  "name": "Collection Shop",
+  "short_name": "Collection Shop",
+  "description": "Your go-to online shop for the latest shoe collections.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#FDB813",
+  "background_color": "#FFFFFF",
+  "icons": [
+    {
+      "src": "/icons/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
