@@ -48,34 +48,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ] as const;
 
   staticPages.forEach(page => {
+    // Helper to generate language alternatives including x-default
+    const languages = locales.reduce((acc, locale) => {
+      acc[locale.code] = `${baseUrl}/${locale.code}${page.path}`;
+      return acc;
+    }, {} as Record<string, string>);
+    languages['x-default'] = `${baseUrl}/${defaultLocale}${page.path}`;
+
     sitemapEntries.push({
       url: `${baseUrl}/${defaultLocale}${page.path}`,
       lastModified: page.lastModified,
       changeFrequency: page.changeFrequency,
       priority: page.priority,
-      alternates: {
-        languages: locales.reduce((acc, locale) => {
-          acc[locale.code] = `${baseUrl}/${locale.code}${page.path}`;
-          return acc;
-        }, {} as Record<string, string>),
-      },
+      alternates: { languages },
     });
   });
 
 
   // --- Product Pages ---
   allProducts.forEach((product) => {
+    const languages = locales.reduce((acc, locale) => {
+      acc[locale.code] = `${baseUrl}/${locale.code}/product/${product.slug}`;
+      return acc;
+    }, {} as Record<string, string>);
+    languages['x-default'] = `${baseUrl}/${defaultLocale}/product/${product.slug}`;
+
     sitemapEntries.push({
       url: `${baseUrl}/${defaultLocale}/product/${product.slug}`,
       lastModified: new Date(product.updatedAt),
       changeFrequency: 'weekly',
       priority: 0.9,
-      alternates: {
-        languages: locales.reduce((acc, locale) => {
-          acc[locale.code] = `${baseUrl}/${locale.code}/product/${product.slug}`;
-          return acc;
-        }, {} as Record<string, string>),
-      },
+      alternates: { languages },
     });
   });
 
@@ -83,17 +86,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // --- Category Pages ---
   categoryNames.forEach((categoryName) => {
     const slug = encodeURIComponent(categoryName.toLowerCase().replace(/\s+/g, '-'));
+    const languages = locales.reduce((acc, locale) => {
+      acc[locale.code] = `${baseUrl}/${locale.code}/category/${slug}`;
+      return acc;
+    }, {} as Record<string, string>);
+    languages['x-default'] = `${baseUrl}/${defaultLocale}/category/${slug}`;
+
+    // For a more accurate lastModified date, you could find the most
+    // recently updated product in this category.
+    // For now, we'll keep it as new Date().
+    const lastModified = new Date();
+
     sitemapEntries.push({
       url: `${baseUrl}/${defaultLocale}/category/${slug}`,
-      lastModified: new Date(),
+      lastModified,
       changeFrequency: 'daily',
       priority: 0.8,
-      alternates: {
-        languages: locales.reduce((acc, locale) => {
-          acc[locale.code] = `${baseUrl}/${locale.code}/category/${slug}`;
-          return acc;
-        }, {} as Record<string, string>),
-      },
+      alternates: { languages },
     });
   });
 
