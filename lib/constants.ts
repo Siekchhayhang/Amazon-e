@@ -3,7 +3,7 @@ export const APP_SLOGAN =
     process.env.NEXT_PUBLIC_APP_SLOGAN || 'Spend less, enjoy more.'
 export const APP_DESCRIPTION =
     process.env.NEXT_PUBLIC_APP_DESCRIPTION ||
-    'An Amazon clone built with Next.js and MongoDB'
+    'Collections Online Shop is your easy, one-stop solution for all your shopping needs. We bring together a wide range of popular and hard-to-find items, making it simple to browse, compare, and buy from the comfort of your home. Our goal is to make online shopping a seamless and enjoyable experience, offering diverse products that cater to your lifestyle. Start exploring our extensive collections today and simplify your shopping!'
 export const NEXT_PUBLIC_SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL
 
 export const SENDER_NAME = process.env.SENDER_NAME || 'support'
