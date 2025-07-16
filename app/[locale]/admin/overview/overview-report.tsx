@@ -34,7 +34,7 @@ import TableChart from "./table-chart";
 
 export default function OverviewReport() {
   const t = useTranslations("Admin");
-  const [date] = useState<DateRange | undefined>({
+  const [date, setDate] = useState<DateRange | undefined>({
     from: calculatePastDate(30),
     to: new Date(),
   });
@@ -87,7 +87,11 @@ export default function OverviewReport() {
     );
   return (
     <div>
-      <DashboardHeader title={t("Dashboard")} />
+      <DashboardHeader
+        title={t("Dashboard")}
+        defaultDate={date}
+        setDate={setDate}
+      />
       <div className="space-y-4">
         <div className="grid gap-4  grid-cols-2 lg:grid-cols-4">
           <Card>

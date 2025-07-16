@@ -11,23 +11,27 @@ import {
 import Link from "next/link";
 import { CalendarDateRangePicker } from "./date-range-picker";
 import { DateRange } from "react-day-picker";
-import { useState } from "react";
-import { calculatePastDate } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
-export default function DashboardHeader({ title }: { title: string }) {
+interface DashboardHeaderProps {
+  title: string;
+  defaultDate?: DateRange;
+  setDate: React.Dispatch<React.SetStateAction<DateRange | undefined>>;
+}
+
+export default function DashboardHeader({
+  title,
+  defaultDate,
+  setDate,
+}: DashboardHeaderProps) {
   const t = useTranslations("Admin");
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: calculatePastDate(30),
-    to: new Date(),
-  });
+
   return (
     <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
       <h1 className="text-xl font-bold sm:text-2xl md:text-3xl">{title}</h1>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <CalendarDateRangePicker defaultDate={date} setDate={setDate} />
-
+        <CalendarDateRangePicker defaultDate={defaultDate} setDate={setDate} />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -41,7 +45,7 @@ export default function DashboardHeader({ title }: { title: string }) {
           <DropdownMenuContent align="end" className="w-48 sm:w-56 md:w-64">
             {[
               {
-                href: `/api/admin/reports/revenue?from=${date?.from?.toISOString()}&to=${date?.to?.toISOString()}`,
+                href: `/api/admin/reports/revenue?from=${defaultDate?.from?.toISOString()}&to=${defaultDate?.to?.toISOString()}`,
                 label: t("Revenue"),
               },
               { href: "/api/admin/reports/orders", label: t("Orders") },
