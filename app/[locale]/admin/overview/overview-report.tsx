@@ -87,11 +87,7 @@ export default function OverviewReport() {
     );
   return (
     <div>
-      <DashboardHeader
-        title={t("Dashboard")}
-        defaultDate={date}
-        setDate={setDate}
-      />
+      <DashboardHeader title={t("Dashboard")} date={date} setDate={setDate} />
       <div className="space-y-4">
         <div className="grid gap-4  grid-cols-2 lg:grid-cols-4">
           <Card>
