@@ -10,10 +10,10 @@ import {
   getTopSellingProducts,
 } from '@/lib/actions/ai.actions';
 import { NextResponse } from 'next/server';
-import { GOOGLE_API_KEY } from '@/lib/constants';
+import { GOOGLE_API_KEY, GOOGLE_API_KEY_JS } from '@/lib/constants';
 import { getAllProducts } from '@/lib/actions/product.actions';
 
-const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY!);
+const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY!) || new GoogleGenerativeAI(GOOGLE_API_KEY_JS!);
 
 const tools: FunctionDeclaration[] = [
   {
