@@ -10,17 +10,11 @@ import {
   getTopSellingProducts,
 } from '@/lib/actions/ai.actions';
 import { NextResponse } from 'next/server';
-<<<<<<< HEAD
-import { GOOGLE_API_KEY_JS } from '@/lib/constants';
-import { getAllProducts } from '@/lib/actions/product.actions';
 
-const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY_JS!);
-=======
 import { GOOGLE_API_KEY } from '@/lib/constants';
 import { getAllProducts } from '@/lib/actions/product.actions';
 
 const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY!);
->>>>>>> parent of 4b22dd7 (add more  Google AI Studio Key)
 
 const tools: FunctionDeclaration[] = [
   {
