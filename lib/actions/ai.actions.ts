@@ -2,8 +2,7 @@
 
 import { connectToDatabase } from '@/lib/db'
 import Product from '@/lib/db/models/product.model'
-import { getSetting } from './setting.actions'
-import { getAllProducts } from './product.actions' 
+import { getAllProducts } from './product.actions'
 
 export async function getNewestProducts() {
   await connectToDatabase()
@@ -23,9 +22,28 @@ export async function getTopSellingProducts() {
   return JSON.parse(JSON.stringify(products))
 }
 
-export async function getShopLocation() {
-  const { shop } = await getSetting()
-  return shop.location
+export async function getSuggestionProductPrice({
+  productName,
+}: {
+  productName: string
+}) {
+  const product = await getProductByName(productName)
+  if (product) {
+    return `The price of ${product.name} is ${product.price}. I would suggest a price around ${product.price}.`
+  }
+  const { products } = await getAllProducts({
+    query: productName,
+    limit: 4,
+    page: 1,
+    category: 'all',
+    tag: 'all',
+  })
+  if (products.length > 0) {
+    return `We couldn't find a product with the name ${productName}. Here are some similar products: ${products
+      .map((p) => `${p.name} (${p.price})`)
+      .join(', ')}`
+  }
+  return `We couldn't find a product with the name ${productName}.`
 }
 
 export async function getProductByName(productName: string) {

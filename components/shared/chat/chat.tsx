@@ -126,14 +126,14 @@ export default function Chat() {
         variant="outline"
         onClick={toggleChat}
         aria-label={isOpen ? "Close chat" : "Open chat"}
-        className="fixed bottom-4 right-4 z-50 rounded-full p-1 bg-popover shadow-lg transition-transform duration-300 hover:scale-110 active:scale-95 h-16 w-16 sm:h-20 sm:w-20 lg:h-24 lg:w-24"
+        className="fixed bottom-4 right-4 z-50 rounded-full p-1 bg-popover shadow-lg transition-transform duration-300 hover:scale-110 active:scale-95 h-14 w-14 sm:h-16 sm:w-16 lg:h-20 lg:w-20"
       >
         <Lottie animationData={AIBotAnimation} loop autoplay />
       </Button>
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-[5.5rem] sm:bottom-[6.5rem] lg:bottom-[7.5rem] right-4 z-50 w-[calc(100%-2rem)] max-w-md sm:w-96 border bg-white dark:bg-slate-900 dark:border-slate-700 shadow-xl rounded-lg flex flex-col">
+        <div className="fixed bottom-[5.5rem] sm:bottom-[6.5rem] lg:bottom-[7.5rem] right-4 z-50 w-[calc(100%-2rem)] max-w-md sm:w-96 border bg-white dark:bg-slate-900 dark:border-slate-700 shadow-xl rounded-lg flex flex-col max-h-[80vh] overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b dark:border-slate-700">
             <h3 className="text-lg font-semibold">Chat with bot assistant</h3>
@@ -148,14 +148,14 @@ export default function Chat() {
           </div>
 
           {/* Messages */}
-          <div className="flex-grow h-64 overflow-y-auto space-y-3 p-4 pr-2">
+          <div className="flex-grow overflow-y-auto space-y-3 p-3 pr-1 text-sm">
             {messages.map((m, i) => (
               <div
                 key={i}
                 className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-xl px-4 py-2 text-sm shadow-md transition-all duration-200 ${
+                  className={`max-w-[80%] break-words rounded-xl px-4 py-2 text-xs sm:text-sm shadow-md transition-all duration-200 ${
                     m.role === "user"
                       ? "bg-blue-600 text-white rounded-br-none"
                       : "bg-gray-100 text-gray-900 dark:bg-slate-700 dark:text-white rounded-bl-none"
@@ -201,10 +201,10 @@ export default function Chat() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Type your message..."
-                autoFocus
                 disabled={isLoading}
-                className="flex-grow"
+                className="flex-grow text-sm px-3 py-2"
               />
+
               <Button type="submit" disabled={isLoading || !input.trim()}>
                 Send
               </Button>

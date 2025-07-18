@@ -1,58 +1,75 @@
-import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+import {
+  GoogleGenerativeAI,
+  SchemaType,
+  type FunctionDeclaration,
+  type Schema,
+} from '@google/generative-ai';
 import {
   getNewestProducts,
-  getShopLocation,
+  getSuggestionProductPrice,
   getTopSellingProducts,
 } from '@/lib/actions/ai.actions';
 import { NextResponse } from 'next/server';
 import { GOOGLE_API_KEY } from '@/lib/constants';
+import { getAllProducts } from '@/lib/actions/product.actions';
 
 const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY!);
 
-const tools = [
+const tools: FunctionDeclaration[] = [
   {
-    functionDeclarations: [
-      {
-        name: 'getNewestProducts',
-        description: 'Get the 4 newest products.',
-        parameters: {
-          type: SchemaType.OBJECT,
-          properties: {},
+    name: 'getNewestProducts',
+    description: 'Get the 4 newest products.',
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: {},
+    } satisfies Schema,
+  },
+  {
+    name: 'getTopSellingProducts',
+    description: 'Get the 4 top selling products.',
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: {},
+    } satisfies Schema,
+  },
+  {
+    name: 'getSuggestionProductPrice',
+    description: 'Suggest a price for a product.',
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: {
+        productName: {
+          type: SchemaType.STRING,
+          description: 'The name of the product.',
         },
       },
-      {
-        name: 'getTopSellingProducts',
-        description: 'Get the 4 top selling products.',
-        parameters: {
-          type: SchemaType.OBJECT,
-          properties: {},
-        },
-      },
-      {
-        name: 'getShopLocation',
-        description: 'Get the location of the shop.',
-        parameters: {
-          type: SchemaType.OBJECT,
-          properties: {},
-        },
-      },
-    ],
+      required: ['productName'],
+    } satisfies Schema,
   },
 ];
 
-const toolFunctions: Record<string, (args: object) => unknown> = {
-  getNewestProducts,
-  getTopSellingProducts,
-  getShopLocation,
+const toolFunctions: Record<string, (args: object) => Promise<unknown>> = {
+  getNewestProducts: async () => await getNewestProducts(),
+  getTopSellingProducts: async () => await getTopSellingProducts(),
+  getSuggestionProductPrice: async (args) =>
+    await getSuggestionProductPrice(args as { productName: string }),
 };
 
-const suggestedPrompts = [
-  'What are the newest products?',
-  'Show me the top selling products.',
-  'Where is your shop located?',
-];
-
 export async function GET() {
+  const { products } = await getAllProducts({
+    query: 'all',
+    category: 'all',
+    tag: 'all',
+    page: 1,
+    limit: 3,
+    sort: 'latest',
+    rating: 'all',
+  });
+  const suggestedPrompts = [
+    'What are the newest products?',
+    'Show me the top selling products.',
+    ...products.map((p) => `Suggest a price for a ${p.name}.`),
+  ];
   return NextResponse.json({ prompts: suggestedPrompts });
 }
 export async function POST(req: Request) {
@@ -60,9 +77,8 @@ export async function POST(req: Request) {
 
   const model = genAI.getGenerativeModel({
     model: 'gemini-1.5-flash',
-    tools,
+    tools: [{ functionDeclarations: tools }],
   });
-
   const chat = model.startChat();
   const lastMessage = messages[messages.length - 1].content;
 
@@ -116,4 +132,4 @@ export async function POST(req: Request) {
       'Content-Type': 'text/plain',
     },
   });
-}
+} 
