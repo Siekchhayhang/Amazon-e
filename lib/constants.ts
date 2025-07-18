@@ -17,6 +17,8 @@ export const WEBSITE_LOGO = '/logo.png'
 
 export const NODE_ENV = process.env.NODE_ENV === 'production'
 
+export const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY
+
 export const USER_ROLES = ['Admin', 'User']
 export const COLORS = ['Gold', 'Green', 'Red']
 export const THEMES = ['Light', 'Dark', 'System']
