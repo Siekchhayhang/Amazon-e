@@ -331,7 +331,7 @@ export const SettingInputSchema = z.object({
 
   carousels: z
     .array(CarouselSchema)
-    .min(1, 'At least one language is required'),
+    .min(1, 'At least one carousel is required'),
   defaultLanguage: z.string().min(1, 'Language is required'),
   availableCurrencies: z
     .array(SiteCurrencySchema)
