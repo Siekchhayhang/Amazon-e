@@ -1,11 +1,11 @@
-import { useSession } from 'next-auth/react'
-import { useEffect } from 'react'
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import { create } from 'zustand';
+import { calcDeliveryDateAndPrice } from '@/lib/actions/order.actions';
+import { getCart, saveCart } from '@/lib/actions/cart.actions';
+import { Cart, OrderItem, ShippingAddress } from '@/types';
 
-import { calcDeliveryDateAndPrice } from '@/lib/actions/order.actions'
-import { Cart, OrderItem, ShippingAddress } from '@/types'
-
+// The initial state for a new or empty cart.
 const initialState: Cart = {
   items: [],
   itemsPrice: 0,
@@ -15,226 +15,147 @@ const initialState: Cart = {
   paymentMethod: undefined,
   shippingAddress: undefined,
   deliveryDateIndex: undefined,
-}
+};
 
+// The Zustand store now only manages the local state synchronously.
 interface CartState {
-  cart: Cart
-  addItem: (item: OrderItem, quantity: number) => Promise<string>
-  updateItem: (item: OrderItem, quantity: number) => Promise<void>
-  removeItem: (item: OrderItem) => void
-  clearCart: () => void
-  setShippingAddress: (shippingAddress: ShippingAddress) => Promise<void>
-  setPaymentMethod: (paymentMethod: string) => void
-  setDeliveryDateIndex: (index: number) => Promise<void>
-  editShippingAddress: (updatedAddress: Partial<ShippingAddress>) => Promise<void>
-  init: (userId: string) => void
+  cart: Cart;
+  setCart: (cart: Cart) => void;
 }
 
-const cartStore = create(
-  persist<CartState>(
-    (set, get) => ({
-      cart: initialState,
+const useCartStore = create<CartState>((set) => ({
+  cart: initialState,
+  setCart: (cart) => set({ cart }),
+}));
 
-      addItem: async (item: OrderItem, quantity: number) => {
-        const { items, shippingAddress } = get().cart
-        const existItem = items.find(
-          (x) =>
-            x.product === item.product &&
-            x.color === item.color &&
-            x.size === item.size
-        )
-
-        if (existItem) {
-          if (existItem.countInStock < quantity + existItem.quantity) {
-            throw new Error('Not enough items in stock')
-          }
-        } else {
-          if (item.countInStock < item.quantity) {
-            throw new Error('Not enough items in stock')
-          }
-        }
-
-        const updatedCartItems = existItem
-          ? items.map((x) =>
-            x.product === item.product &&
-              x.color === item.color &&
-              x.size === item.size
-              ? { ...existItem, quantity: existItem.quantity + quantity }
-              : x
-          )
-          : [...items, { ...item, quantity }]
-
-        set({
-          cart: {
-            ...get().cart,
-            items: updatedCartItems,
-            ...(await calcDeliveryDateAndPrice({
-              items: updatedCartItems,
-              shippingAddress,
-            })),
-          },
-        })
-        const foundItem = updatedCartItems.find(
-          (x) =>
-            x.product === item.product &&
-            x.color === item.color &&
-            x.size === item.size
-        )
-        if (!foundItem) {
-          throw new Error('Item not found in cart')
-        }
-        return foundItem.clientId
-      },
-      updateItem: async (item: OrderItem, quantity: number) => {
-        const { items, shippingAddress } = get().cart
-        const exist = items.find(
-          (x) =>
-            x.product === item.product &&
-            x.color === item.color &&
-            x.size === item.size
-        )
-        if (!exist) return
-        const updatedCartItems = items.map((x) =>
-          x.product === item.product &&
-            x.color === item.color &&
-            x.size === item.size
-            ? { ...exist, quantity: quantity }
-            : x
-        )
-        set({
-          cart: {
-            ...get().cart,
-            items: updatedCartItems,
-            ...(await calcDeliveryDateAndPrice({
-              items: updatedCartItems,
-              shippingAddress,
-            })),
-          },
-        })
-      },
-      removeItem: async (item: OrderItem) => {
-        const { items, shippingAddress } = get().cart
-        const updatedCartItems = items.filter(
-          (x) =>
-            x.product !== item.product ||
-            x.color !== item.color ||
-            x.size !== item.size
-        )
-        set({
-          cart: {
-            ...get().cart,
-            items: updatedCartItems,
-            ...(await calcDeliveryDateAndPrice({
-              items: updatedCartItems,
-              shippingAddress,
-            })),
-          },
-        })
-      },
-      setShippingAddress: async (shippingAddress: ShippingAddress) => {
-        const { items } = get().cart
-        set({
-          cart: {
-            ...get().cart,
-            shippingAddress,
-            ...(await calcDeliveryDateAndPrice({
-              items,
-              shippingAddress,
-            })),
-          },
-        })
-      },
-
-      editShippingAddress: async (updatedAddress: Partial<ShippingAddress>) => {
-        const { cart } = get()
-        const newShippingAddress: ShippingAddress = {
-          ...cart.shippingAddress,
-          ...updatedAddress,
-        } as ShippingAddress
-
-        set({
-          cart: {
-            ...cart,
-            shippingAddress: newShippingAddress,
-            ...(await calcDeliveryDateAndPrice({
-              items: cart.items,
-              shippingAddress: newShippingAddress,
-            })),
-          },
-        })
-      },
-
-      setPaymentMethod: (paymentMethod: string) => {
-        set({
-          cart: {
-            ...get().cart,
-            paymentMethod,
-          },
-        })
-      },
-      setDeliveryDateIndex: async (index: number) => {
-        const { items, shippingAddress } = get().cart
-
-        set({
-          cart: {
-            ...get().cart,
-            ...(await calcDeliveryDateAndPrice({
-              items,
-              shippingAddress,
-              deliveryDateIndex: index,
-            })),
-          },
-        })
-      },
-      clearCart: () => {
-        set({
-          cart: {
-            ...get().cart,
-            items: [],
-          },
-        })
-      },
-      init: (userId: string) => {
-        cartStore.persist.setOptions({
-          name: `cart-store-${userId}`,
-        })
-        const guestCart = cartStore.getState().cart
-        if (guestCart.items.length > 0) {
-          // transfer guest cart to user cart
-          set({ cart: guestCart })
-        }
-        // Clear guest cart
-        localStorage.removeItem('cart-store')
-      },
-    }),
-    {
-      name: 'cart-store',
-    }
-  )
-)
-
+// The main hook that orchestrates state, API calls, and session management.
 export default function useCartService() {
-  const { data: session } = useSession()
-  const {
-    cart,
-    addItem,
-    updateItem,
-    removeItem,
-    clearCart,
-    setShippingAddress,
-    setPaymentMethod,
-    setDeliveryDateIndex,
-    editShippingAddress,
-    init,
-  } = cartStore()
+  const { data: session } = useSession();
+  const { cart, setCart } = useCartStore();
+  const [isInitialized, setIsInitialized] = useState(false);
 
+  // Effect to load the user's cart from the database upon login.
   useEffect(() => {
+    const loadCart = async () => {
+      if (session?.user?.id && !isInitialized) {
+        try {
+          const dbCart = await getCart(session.user.id);
+          if (dbCart && dbCart.items) {
+            const calculatedCart = await calcDeliveryDateAndPrice({
+              items: dbCart.items,
+            });
+            setCart({ ...initialState, ...calculatedCart, items: dbCart.items });
+          }
+        } finally {
+          setIsInitialized(true);
+        }
+      } else if (!session?.user?.id) {
+        // For guest users, reset to initial state.
+        setCart(initialState);
+        setIsInitialized(true);
+      }
+    };
+    loadCart();
+  }, [session?.user?.id, isInitialized, setCart]);
+
+  // Helper function to update both local state and the database.
+  const updateCart = async (newCart: Cart) => {
+    setCart(newCart);
     if (session?.user?.id) {
-      init(session.user.id)
+      await saveCart(session.user.id, newCart);
     }
-  }, [session?.user?.id, init])
+  };
+
+  // Public actions that components will use.
+  const addItem = async (item: OrderItem, quantity: number) => {
+    const existItem = cart.items.find(
+      (x) =>
+        x.product === item.product &&
+        x.color === item.color &&
+        x.size === item.size
+    );
+
+    if (existItem && existItem.countInStock < quantity + existItem.quantity) {
+      throw new Error('Not enough items in stock');
+    }
+    if (!existItem && item.countInStock < quantity) {
+      throw new Error('Not enough items in stock');
+    }
+
+    const updatedItems = existItem
+      ? cart.items.map((x) =>
+        x.product === existItem.product && x.color === existItem.color && x.size === existItem.size
+          ? { ...existItem, quantity: existItem.quantity + quantity }
+          : x
+      )
+      : [...cart.items, { ...item, quantity }];
+
+    const calculatedCart = await calcDeliveryDateAndPrice({ items: updatedItems, shippingAddress: cart.shippingAddress });
+    await updateCart({ ...cart, ...calculatedCart, items: updatedItems });
+  };
+
+  const updateItem = async (item: OrderItem, quantity: number) => {
+    const existItem = cart.items.find(
+      (x) =>
+        x.product === item.product &&
+        x.color === item.color &&
+        x.size === item.size
+    );
+    if (!existItem) return;
+
+    const updatedItems = cart.items.map((x) =>
+      x.product === existItem.product && x.color === existItem.color && x.size === existItem.size
+        ? { ...existItem, quantity }
+        : x
+    );
+
+    const calculatedCart = await calcDeliveryDateAndPrice({ items: updatedItems, shippingAddress: cart.shippingAddress });
+    await updateCart({ ...cart, ...calculatedCart, items: updatedItems });
+  };
+
+
+  const removeItem = async (item: OrderItem) => {
+    const updatedItems = cart.items.filter(
+      (x) =>
+        x.product !== item.product ||
+        x.color !== item.color ||
+        x.size !== item.size
+    );
+    const calculatedCart = await calcDeliveryDateAndPrice({ items: updatedItems, shippingAddress: cart.shippingAddress });
+    await updateCart({ ...cart, ...calculatedCart, items: updatedItems });
+  };
+
+  const clearCart = async () => {
+    await updateCart({ ...cart, items: [], itemsPrice: 0, taxPrice: 0, shippingPrice: 0, totalPrice: 0 });
+  };
+
+  const setShippingAddress = (shippingAddress: ShippingAddress) => {
+    setCart({ ...cart, shippingAddress });
+  };
+  const setPaymentMethod = (paymentMethod: string) => {
+    setCart({ ...cart, paymentMethod });
+  };
+
+  const editShippingAddress = async (updatedAddress: Partial<ShippingAddress>) => {
+    const newShippingAddress: ShippingAddress = {
+      ...(cart.shippingAddress as ShippingAddress),
+      ...updatedAddress,
+    };
+    setCart({ ...cart, shippingAddress: newShippingAddress });
+  };
+
+  const setDeliveryDateIndex = async (index: number) => {
+    const calculatedCart = await calcDeliveryDateAndPrice({
+      items: cart.items,
+      shippingAddress: cart.shippingAddress,
+      deliveryDateIndex: index,
+    });
+    // Only update the local state, as this doesn't need to be saved in the DB cart
+    setCart({ ...cart, ...calculatedCart });
+  };
 
   return {
+    isInitialized,
     cart,
     addItem,
     updateItem,
@@ -242,7 +163,7 @@ export default function useCartService() {
     clearCart,
     setShippingAddress,
     setPaymentMethod,
-    setDeliveryDateIndex,
     editShippingAddress,
-  }
+    setDeliveryDateIndex,
+  };
 }
