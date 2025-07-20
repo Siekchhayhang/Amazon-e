@@ -16,12 +16,20 @@ import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import useCartService from "@/hooks/use-cart-service";
+import { toast } from "@/hooks/use-toast";
 
 export default function Sidebar({ categories }: { categories: string[] }) {
   const { data: session } = useSession();
   const { signOut } = useCartService();
   const locale = useLocale();
   const t = useTranslations();
+
+  const handleSignOut = () => {
+    signOut();
+    toast({
+      description: "You have been signed out successfully.",
+    });
+  };
 
   return (
     <Drawer direction={getDirection(locale) === "rtl" ? "left" : "left"}>
@@ -105,7 +113,7 @@ export default function Sidebar({ categories }: { categories: string[] }) {
             </DrawerClose>
             {session ? (
               <Button
-                onClick={() => signOut()}
+                onClick={handleSignOut}
                 className="w-full justify-start item-button text-base"
                 variant="ghost"
               >
