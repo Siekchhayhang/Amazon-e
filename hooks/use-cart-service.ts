@@ -1,5 +1,5 @@
 import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { create } from 'zustand';
 import { calcDeliveryDateAndPrice } from '@/lib/actions/order.actions';
 import { getCart, saveCart } from '@/lib/actions/cart.actions';
@@ -30,14 +30,14 @@ const useCartStore = create<CartState>((set) => ({
 
 // The main hook that orchestrates state, API calls, and session management.
 export default function useCartService() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { cart, setCart } = useCartStore();
-  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Effect to load the user's cart from the database upon login.
   useEffect(() => {
     const loadCart = async () => {
-      if (session?.user?.id && !isInitialized) {
+      // When the session is authenticated, load the user's cart from the database.
+      // Added a check to ensure session.user.id is not undefined.
+      if (status === 'authenticated' && session.user.id) {
         try {
           const dbCart = await getCart(session.user.id);
           if (dbCart && dbCart.items) {
@@ -45,18 +45,23 @@ export default function useCartService() {
               items: dbCart.items,
             });
             setCart({ ...initialState, ...calculatedCart, items: dbCart.items });
+          } else {
+            // If the user has no cart in the database, ensure the local state is clean.
+            setCart(initialState);
           }
-        } finally {
-          setIsInitialized(true);
+        } catch (error) {
+          console.error("Failed to load cart from database:", error);
+          setCart(initialState); // Reset to empty cart on error
         }
-      } else if (!session?.user?.id) {
-        // For guest users, reset to initial state.
-        setCart(initialState);
-        setIsInitialized(true);
       }
+      // When the user is not authenticated, reset the cart to its initial empty state.
+      else if (status === 'unauthenticated') {
+        setCart(initialState);
+      }
+      // While the session is loading, we do nothing.
     };
     loadCart();
-  }, [session?.user?.id, isInitialized, setCart]);
+  }, [status, session?.user?.id, setCart]);
 
   // Helper function to update both local state and the database.
   const updateCart = async (newCart: Cart) => {
@@ -150,12 +155,10 @@ export default function useCartService() {
       shippingAddress: cart.shippingAddress,
       deliveryDateIndex: index,
     });
-    // Only update the local state, as this doesn't need to be saved in the DB cart
     setCart({ ...cart, ...calculatedCart });
   };
 
   return {
-    isInitialized,
     cart,
     addItem,
     updateItem,
