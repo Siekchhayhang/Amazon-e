@@ -35,7 +35,6 @@ export default function useCartService() {
 
   useEffect(() => {
     const loadCart = async () => {
-      // When the session is authenticated, load the user's cart from the database.
       if (status === 'authenticated' && session.user.id) {
         try {
           const dbCart = await getCart(session.user.id);
@@ -45,24 +44,20 @@ export default function useCartService() {
             });
             setCart({ ...initialState, ...calculatedCart, items: dbCart.items });
           } else {
-            // If the user has no cart in the database, ensure the local state is clean.
             setCart(initialState);
           }
         } catch (error) {
           console.error("Failed to load cart from database:", error);
-          setCart(initialState); // Reset to empty cart on error
+          setCart(initialState);
         }
       }
-      // When the user is not authenticated, reset the cart to its initial empty state.
       else if (status === 'unauthenticated') {
         setCart(initialState);
       }
-      // While the session is loading, we do nothing.
     };
     loadCart();
   }, [status, session?.user?.id, setCart]);
 
-  // Helper function to update both local state and the database.
   const updateCart = async (newCart: Cart) => {
     setCart(newCart);
     if (session?.user?.id) {
@@ -70,7 +65,14 @@ export default function useCartService() {
     }
   };
 
-  // Public actions that components will use.
+  const signOutAndClearCart = async () => {
+    setCart(initialState);
+    //Add a query parameter to the callback URL.
+    await signOut({ callbackUrl: '/?signed_out=true' });
+  };
+
+  // ... all other functions like addItem, removeItem, etc. remain the same
+
   const addItem = async (item: OrderItem, quantity: number) => {
     const existItem = cart.items.find(
       (x) =>
@@ -155,14 +157,6 @@ export default function useCartService() {
       deliveryDateIndex: index,
     });
     setCart({ ...cart, ...calculatedCart });
-  };
-
-  //Added a dedicated sign-out function to clear the cart immediately.
-  const signOutAndClearCart = async () => {
-    // 1. Immediately clear the client-side cart state.
-    setCart(initialState);
-    // 2. Proceed with the standard sign-out process from NextAuth.
-    await signOut({ callbackUrl: '/' });
   };
 
   return {

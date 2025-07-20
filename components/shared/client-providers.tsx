@@ -9,6 +9,7 @@ import AppInitializer from "./app-initializer";
 import CartSidebar from "./cart-sidebar";
 import Chat from "./chat/chat";
 import { ThemeProvider } from "./theme-provider";
+import ToastManager from "./toast-manager";
 
 // 1. Create a new child component for the layout logic.
 // This component will be rendered *inside* the SessionProvider.
@@ -49,6 +50,7 @@ export default function ClientProviders({
         >
           {/* 4. Render the new child component here. */}
           <AppContent>{children}</AppContent>
+          <ToastManager />
         </ThemeProvider>
       </AppInitializer>
     </SessionProvider>
