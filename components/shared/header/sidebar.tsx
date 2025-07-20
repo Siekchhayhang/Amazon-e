@@ -104,16 +104,13 @@ export default function Sidebar({ categories }: { categories: string[] }) {
               </Link>
             </DrawerClose>
             {session ? (
-              //Replaced the <form> with a <Button> that calls the client-side signOut function
-              <DrawerClose asChild>
-                <Button
-                  onClick={() => signOut()}
-                  className="w-full justify-start item-button text-base"
-                  variant="ghost"
-                >
-                  {t("Header.Sign out")}
-                </Button>
-              </DrawerClose>
+              <Button
+                onClick={() => signOut()}
+                className="w-full justify-start item-button text-base"
+                variant="ghost"
+              >
+                {t("Header.Sign out")}
+              </Button>
             ) : (
               <DrawerClose asChild>
                 <Link href="/sign-in" className="item-button">
