@@ -1,9 +1,9 @@
-import { signOut, useSession } from 'next-auth/react';
+import { getCart, saveCart } from '@/lib/actions/cart.actions';
+import { calcDeliveryDateAndPrice } from '@/lib/actions/order.actions';
+import { Cart, OrderItem, ShippingAddress } from '@/types';
+import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import { create } from 'zustand';
-import { calcDeliveryDateAndPrice } from '@/lib/actions/order.actions';
-import { getCart, saveCart } from '@/lib/actions/cart.actions';
-import { Cart, OrderItem, ShippingAddress } from '@/types';
 
 // The initial state for a new or empty cart.
 const initialState: Cart = {
@@ -65,16 +65,7 @@ export default function useCartService() {
     }
   };
 
-  const signOutAndClearCart = async () => {
-    setCart(initialState);
-    await signOut({ redirect: false });
-    // Manually perform a full page reload to the desired URL.
-    // This ensures all client-side state, including the session, is completely reset.
-    window.location.href = '/?signed_out=true';
-  };
-
   // ... all other functions like addItem, removeItem, etc. remain the same
-
   const addItem = async (item: OrderItem, quantity: number) => {
     const existItem = cart.items.find(
       (x) =>
@@ -171,6 +162,5 @@ export default function useCartService() {
     setPaymentMethod,
     editShippingAddress,
     setDeliveryDateIndex,
-    signOut: signOutAndClearCart,
   };
 }

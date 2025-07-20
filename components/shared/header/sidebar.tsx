@@ -1,5 +1,4 @@
-"use client";
-
+import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -11,26 +10,19 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { getDirection } from "@/i18n-config";
+import { SignOut } from "@/lib/actions/user.actions";
 import { ChevronRight, MenuIcon, UserCircle, X } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { getLocale, getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
-import useCartService from "@/hooks/use-cart-service";
-import { useToast } from "@/hooks/use-toast";
 
-export default function Sidebar({ categories }: { categories: string[] }) {
-  const { data: session } = useSession();
-  const { signOut } = useCartService();
-  const locale = useLocale();
-  const t = useTranslations();
-  const { toast } = useToast();
-
-  const handleSignOut = () => {
-    signOut();
-    toast({
-      description: "You have been signed out successfully.",
-    });
-  };
+export default async function Sidebar({
+  categories,
+}: {
+  categories: string[];
+}) {
+  const session = await auth();
+  const locale = await getLocale();
+  const t = await getTranslations();
 
   return (
     <Drawer direction={getDirection(locale) === "rtl" ? "left" : "left"}>
@@ -113,13 +105,16 @@ export default function Sidebar({ categories }: { categories: string[] }) {
               </Link>
             </DrawerClose>
             {session ? (
-              <Button
-                onClick={handleSignOut}
-                className="w-full justify-start item-button text-base"
-                variant="ghost"
-              >
-                {t("Header.Sign out")}
-              </Button>
+              // FIX: Reverted to using the server action in a form
+              <form action={SignOut} className="w-full">
+                <Button
+                  className="w-full justify-start item-button text-base"
+                  variant="ghost"
+                  type="submit"
+                >
+                  {t("Header.Sign out")}
+                </Button>
+              </form>
             ) : (
               <DrawerClose asChild>
                 <Link href="/sign-in" className="item-button">

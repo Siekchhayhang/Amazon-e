@@ -1,5 +1,4 @@
-"use client";
-
+import { auth } from "@/auth";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,25 +8,23 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SignOut } from "@/lib/actions/user.actions";
 import { cn } from "@/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
-import useCartService from "@/hooks/use-cart-service";
 
-export default function UserButton() {
-  const t = useTranslations();
-  const { data: session } = useSession();
-  const { signOut } = useCartService();
+export default async function UserButton() {
+  const t = await getTranslations();
+  const session = await auth();
 
   return (
     <div className="flex gap-2 items-center">
       <DropdownMenu>
         <DropdownMenuTrigger className="header-button" asChild>
           <div className="flex items-center">
-            <div className="flex flex-col text-xs text-left">
-              <span>
+            <div className="flex flex-col text-xs md:text-sm text-left">
+              <span className="hidden md:block font-normal">
                 {t("Header.Hello")},{" "}
                 {session ? session.user.name : t("Header.sign in")}
               </span>
@@ -57,24 +54,23 @@ export default function UserButton() {
               <Link className="w-full" href="/account/orders">
                 <DropdownMenuItem>{t("Header.Your orders")}</DropdownMenuItem>
               </Link>
-
               {session.user.role === "Admin" && (
                 <Link className="w-full" href="/admin/overview">
                   <DropdownMenuItem>{t("Header.Admin")}</DropdownMenuItem>
                 </Link>
               )}
             </DropdownMenuGroup>
-            <DropdownMenuItem
-              onSelect={(e) => e.preventDefault()}
-              className="p-0 mb-1"
-            >
-              <Button
-                onClick={() => signOut()}
-                className="w-full py-4 px-2 h-4 justify-start"
-                variant="ghost"
-              >
-                {t("Header.Sign out")}
-              </Button>
+            {/* FIX: Reverted to using the server action in a form */}
+            <DropdownMenuItem className="p-0 mb-1">
+              <form action={SignOut} className="w-full">
+                <Button
+                  className="w-full py-4 px-2 h-4 justify-start"
+                  variant="ghost"
+                  type="submit"
+                >
+                  {t("Header.Sign out")}
+                </Button>
+              </form>
             </DropdownMenuItem>
           </DropdownMenuContent>
         ) : (

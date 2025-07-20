@@ -6,15 +6,15 @@ import { IUserName, IUserSignIn, IUserSignUp, ShippingAddress } from '@/types'
 import { sendResetPasswordEmail, sendVerificationEmail } from '@/utils/email'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
+import { addHours } from 'date-fns'
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { connectToDatabase } from '../db'
+import Cart from '../db/models/cart.model'
 import User, { IUser } from '../db/models/user.model'
 import { formatError } from '../utils'
 import { UserPasswordUpdateSchema, UserSignUpSchema, UserUpdateSchema } from '../validator'
 import { getSetting } from './setting.actions'
-import { addHours } from 'date-fns'
 
 
 
@@ -162,8 +162,21 @@ export const SignInWithGoogle = async () => {
   await signIn('google')
 }
 export const SignOut = async () => {
-  const redirectTo = await signOut({ redirect: false })
-  redirect(redirectTo.redirect)
+  const session = await auth(); // Get the current session to find the user ID
+
+  if (session?.user?.id) {
+    try {
+      await connectToDatabase();
+      // 2. Clear the user's cart from the database.
+      await Cart.findOneAndDelete({ userId: session.user.id });
+    } catch (error) {
+      console.error("Failed to clear cart on sign out:", error);
+      // We don't block the sign-out process if this fails, but we log the error.
+    }
+  }
+
+  // 3. Proceed with the standard sign-out and redirect.
+  await signOut({ redirectTo: '/?signed_out=true', redirect: true });
 }
 
 // GET
