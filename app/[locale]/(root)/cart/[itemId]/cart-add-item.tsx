@@ -8,14 +8,14 @@ import { CheckCircle2Icon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import useCartStore from '@/hooks/use-cart-store'
+import useCartService from '@/hooks/use-cart-service'
 import useSettingStore from '@/hooks/use-setting-store'
 import { useTranslations } from 'next-intl'
 
 export default function CartAddItem({ itemId }: { itemId: string }) {
   const {
     cart: { items, itemsPrice },
-  } = useCartStore()
+  } = useCartService()
   const {
     setting: {
       common: { freeShippingMinPrice },

@@ -1,7 +1,7 @@
 "use client";
 
 import useShowSidebar from "@/hooks/use-cart-sidebar";
-import useCartStore from "@/hooks/use-cart-store";
+import useCartService from "@/hooks/use-cart-service";
 import useIsMounted from "@/hooks/use-is-mounted";
 import { getDirection } from "@/i18n-config";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,7 @@ export default function CartButton() {
   const isMounted = useIsMounted();
   const {
     cart: { items },
-  } = useCartStore();
+  } = useCartService();
   const cartItemsCount = items.reduce((a, c) => a + c.quantity, 0);
   const showSidebar = useShowSidebar();
   const t = useTranslations();

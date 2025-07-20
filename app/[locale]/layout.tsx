@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
-import ClientProviders from "@/components/shared/client-providers";
+import SessionProvider from "@/components/shared/client-providers";
 import { getDirection } from "@/i18n-config";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
@@ -66,9 +66,9 @@ export default async function AppLayout({
         className={`min-h-screen ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <ClientProviders setting={{ ...setting, currency }}>
+          <SessionProvider setting={{ ...setting, currency }}>
             {children}
-          </ClientProviders>
+          </SessionProvider>
         </NextIntlClientProvider>
       </body>
     </html>

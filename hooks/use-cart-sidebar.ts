@@ -1,6 +1,6 @@
 import { i18n } from '@/i18n-config'
 import { usePathname } from 'next/navigation'
-import useCartStore from './use-cart-store'
+import useCartService from './use-cart-service'
 import useDeviceType from './use-device-type'
 
 const locales = i18n.locales
@@ -16,7 +16,7 @@ const isNotInPaths = (s: string) => {
 function useCartSidebar() {
   const {
     cart: { items },
-  } = useCartStore()
+  } = useCartService()
   const deviceType = useDeviceType()
   const currentPath = usePathname()
 

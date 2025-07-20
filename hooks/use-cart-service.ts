@@ -1,3 +1,5 @@
+import { useSession } from 'next-auth/react'
+import { useEffect } from 'react'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
@@ -24,10 +26,11 @@ interface CartState {
   setShippingAddress: (shippingAddress: ShippingAddress) => Promise<void>
   setPaymentMethod: (paymentMethod: string) => void
   setDeliveryDateIndex: (index: number) => Promise<void>
-  editShippingAddress: (updatedAddress: Partial<ShippingAddress>) => Promise<void>;
+  editShippingAddress: (updatedAddress: Partial<ShippingAddress>) => Promise<void>
+  init: (userId: string) => void
 }
 
-const useCartStore = create(
+const cartStore = create(
   persist<CartState>(
     (set, get) => ({
       cart: initialState,
@@ -143,11 +146,11 @@ const useCartStore = create(
       },
 
       editShippingAddress: async (updatedAddress: Partial<ShippingAddress>) => {
-        const { cart } = get();
+        const { cart } = get()
         const newShippingAddress: ShippingAddress = {
           ...cart.shippingAddress,
-          ...updatedAddress
-        } as ShippingAddress;
+          ...updatedAddress,
+        } as ShippingAddress
 
         set({
           cart: {
@@ -158,7 +161,7 @@ const useCartStore = create(
               shippingAddress: newShippingAddress,
             })),
           },
-        });
+        })
       },
 
       setPaymentMethod: (paymentMethod: string) => {
@@ -191,12 +194,55 @@ const useCartStore = create(
           },
         })
       },
-      init: () => set({ cart: initialState }),
+      init: (userId: string) => {
+        cartStore.persist.setOptions({
+          name: `cart-store-${userId}`,
+        })
+        const guestCart = cartStore.getState().cart
+        if (guestCart.items.length > 0) {
+          // transfer guest cart to user cart
+          set({ cart: guestCart })
+        }
+        // Clear guest cart
+        localStorage.removeItem('cart-store')
+      },
     }),
-
     {
       name: 'cart-store',
     }
   )
 )
-export default useCartStore
+
+export default function useCartService() {
+  const { data: session } = useSession()
+  const {
+    cart,
+    addItem,
+    updateItem,
+    removeItem,
+    clearCart,
+    setShippingAddress,
+    setPaymentMethod,
+    setDeliveryDateIndex,
+    editShippingAddress,
+    init,
+  } = cartStore()
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      init(session.user.id)
+    }
+  }, [session?.user?.id, init])
+
+  return {
+    cart,
+    addItem,
+    updateItem,
+    removeItem,
+    clearCart,
+    setShippingAddress,
+    setPaymentMethod,
+    setDeliveryDateIndex,
+    editShippingAddress,
+  }
+}

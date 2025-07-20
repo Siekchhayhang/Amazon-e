@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import useCartStore from "@/hooks/use-cart-store";
+import useCartService from "@/hooks/use-cart-service";
 import { useToast } from "@/hooks/use-toast";
 import { saveEditShippingAddressToDatabase } from "@/lib/actions/user.actions";
 import { ShippingAddressSchema } from "@/lib/validator";
@@ -26,7 +26,7 @@ export default function AddressesFormPage() {
   const {
     cart: { shippingAddress },
     editShippingAddress,
-  } = useCartStore();
+  } = useCartService();
 
   const address = useForm<ShippingAddress>({
     resolver: zodResolver(ShippingAddressSchema),

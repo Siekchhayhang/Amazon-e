@@ -1,4 +1,4 @@
-import useCartStore from "@/hooks/use-cart-store";
+import useCartService from "@/hooks/use-cart-service";
 import useSettingStore from "@/hooks/use-setting-store";
 import { getDirection } from "@/i18n-config";
 import { cn } from "@/lib/utils";
@@ -23,7 +23,7 @@ export default function CartSidebar() {
     cart: { items, itemsPrice },
     updateItem,
     removeItem,
-  } = useCartStore();
+  } = useCartService();
   const {
     setting: {
       common: { freeShippingMinPrice },
