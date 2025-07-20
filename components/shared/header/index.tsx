@@ -14,21 +14,22 @@ export default async function Header() {
   const { site } = await getSetting();
   const t = await getTranslations();
   return (
-    <header className="bg-black  text-white">
+    <header className="bg-black   text-white">
       <div className="px-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Link
               href="/"
-              className="flex items-center header-button font-extrabold text-2xl m-1 "
+              className="flex items-center header-button font-extralight text-lg sm:text-xl md:text-2xl"
             >
               <Image
                 src={site.logo}
                 width={40}
                 height={40}
                 alt={`${APP_NAME} logo`}
+                className="w-8 h-8 sm:w-10 sm:h-10" // Make logo slightly smaller on mobile
               />
-              {APP_NAME}
+              <span className="ml-2">{APP_NAME}</span>
             </Link>
           </div>
 
@@ -41,7 +42,7 @@ export default async function Header() {
           <Search />
         </div>
       </div>
-      <div className="flex items-center px-3 mb-[1px]  bg-gray-800">
+      <div className="flex items-center px-3 mb-[1px]   bg-gray-800">
         <Sidebar categories={categories} />
         <div className="flex items-center flex-wrap gap-3 overflow-hidden   max-h-[42px]">
           {data.headerMenus.map((menu) => (

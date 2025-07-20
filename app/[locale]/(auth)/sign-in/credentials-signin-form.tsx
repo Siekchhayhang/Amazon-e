@@ -1,5 +1,5 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,8 +22,8 @@ import { UserSignInSchema } from "@/lib/validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 
-import { useState } from "react"; // at the top
-import { Eye, EyeOff } from "lucide-react"; // optional: for toggle icon
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 const signInDefaultValues =
   process.env.NODE_ENV === "development"
@@ -54,8 +54,6 @@ export default function CredentialsSignInForm() {
 
   const { control, handleSubmit } = form;
 
-  const router = useRouter();
-
   const onSubmit = async (data: IUserSignIn) => {
     setIsSubmitting(true);
     try {
@@ -66,14 +64,16 @@ export default function CredentialsSignInForm() {
           description: result.message,
           variant: "destructive",
         });
-        setIsSubmitting(false); // Also reset submitting state here
+        setIsSubmitting(false);
         return;
       }
       toast({
         title: "Success",
         description: result.message || "You have successfully signed in.",
       });
-      router.push(callbackUrl);
+      // Use window.location.href to force a full page reload.
+      // This ensures the session is updated across the entire application.
+      window.location.href = callbackUrl;
     } catch (error) {
       if (isRedirectError(error)) throw error;
 

@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+"use client";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -9,26 +9,31 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SignOut } from "@/lib/actions/user.actions";
 import { cn } from "@/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import useCartService from "@/hooks/use-cart-service";
 
-export default async function UserButton() {
-  const t = await getTranslations();
-  const session = await auth();
+export default function UserButton() {
+  const t = useTranslations();
+  const { data: session } = useSession();
+  const { signOut } = useCartService();
+
   return (
     <div className="flex gap-2 items-center">
       <DropdownMenu>
         <DropdownMenuTrigger className="header-button" asChild>
           <div className="flex items-center">
             <div className="flex flex-col text-xs text-left">
-              <span>
+              <span className="hidden md:block font-normal">
                 {t("Header.Hello")},{" "}
                 {session ? session.user.name : t("Header.sign in")}
               </span>
-              <span className="font-bold">{t("Header.Account & Orders")}</span>
+              <span className="font-semibold">
+                {t("Header.Account & Orders")}
+              </span>
             </div>
             <ChevronDownIcon />
           </div>
@@ -59,15 +64,17 @@ export default async function UserButton() {
                 </Link>
               )}
             </DropdownMenuGroup>
-            <DropdownMenuItem className="p-0 mb-1">
-              <form action={SignOut} className="w-full">
-                <Button
-                  className="w-full py-4 px-2 h-4 justify-start"
-                  variant="ghost"
-                >
-                  {t("Header.Sign out")}
-                </Button>
-              </form>
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="p-0 mb-1"
+            >
+              <Button
+                onClick={() => signOut()}
+                className="w-full py-4 px-2 h-4 justify-start"
+                variant="ghost"
+              >
+                {t("Header.Sign out")}
+              </Button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         ) : (

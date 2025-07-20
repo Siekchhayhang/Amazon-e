@@ -1,4 +1,4 @@
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import { create } from 'zustand';
 import { calcDeliveryDateAndPrice } from '@/lib/actions/order.actions';
@@ -36,7 +36,6 @@ export default function useCartService() {
   useEffect(() => {
     const loadCart = async () => {
       // When the session is authenticated, load the user's cart from the database.
-      // Added a check to ensure session.user.id is not undefined.
       if (status === 'authenticated' && session.user.id) {
         try {
           const dbCart = await getCart(session.user.id);
@@ -158,6 +157,14 @@ export default function useCartService() {
     setCart({ ...cart, ...calculatedCart });
   };
 
+  //Added a dedicated sign-out function to clear the cart immediately.
+  const signOutAndClearCart = async () => {
+    // 1. Immediately clear the client-side cart state.
+    setCart(initialState);
+    // 2. Proceed with the standard sign-out process from NextAuth.
+    await signOut({ callbackUrl: '/' });
+  };
+
   return {
     cart,
     addItem,
@@ -168,5 +175,6 @@ export default function useCartService() {
     setPaymentMethod,
     editShippingAddress,
     setDeliveryDateIndex,
+    signOut: signOutAndClearCart,
   };
 }

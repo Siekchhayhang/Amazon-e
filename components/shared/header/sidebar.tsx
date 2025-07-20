@@ -1,4 +1,5 @@
-import { auth } from "@/auth";
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -10,31 +11,28 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { getDirection } from "@/i18n-config";
-import { SignOut } from "@/lib/actions/user.actions";
 import { ChevronRight, MenuIcon, UserCircle, X } from "lucide-react";
-import { getLocale, getTranslations } from "next-intl/server";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import useCartService from "@/hooks/use-cart-service";
 
-export default async function Sidebar({
-  categories,
-}: {
-  categories: string[];
-}) {
-  const session = await auth();
+export default function Sidebar({ categories }: { categories: string[] }) {
+  const { data: session } = useSession();
+  const { signOut } = useCartService();
+  const locale = useLocale();
+  const t = useTranslations();
 
-  const locale = await getLocale();
-
-  const t = await getTranslations();
   return (
     <Drawer direction={getDirection(locale) === "rtl" ? "left" : "left"}>
-      <DrawerTrigger className="header-button flex items-center !p-2  ">
+      <DrawerTrigger className="header-button flex items-center !p-2">
         <MenuIcon className="h-5 w-5 mr-1" />
         {t("Header.All")}
       </DrawerTrigger>
       <DrawerContent className="w-[350px] mt-0 top-0">
         <div className="flex flex-col h-full">
           {/* User Sign In Section */}
-          <div className="dark bg-gray-800 text-foreground flex items-center justify-between  ">
+          <div className="dark bg-gray-800 text-foreground flex items-center justify-between">
             <DrawerHeader>
               <DrawerTitle className="flex items-center">
                 <UserCircle className="h-6 w-6 mr-2" />
@@ -89,7 +87,7 @@ export default async function Sidebar({
           </div>
 
           {/* Setting and Help */}
-          <div className="border-t flex flex-col ">
+          <div className="border-t flex flex-col">
             <div className="p-4">
               <h2 className="text-lg font-semibold">
                 {t("Header.Help & Settings")}
@@ -106,18 +104,22 @@ export default async function Sidebar({
               </Link>
             </DrawerClose>
             {session ? (
-              <form action={SignOut} className="w-full">
+              //Replaced the <form> with a <Button> that calls the client-side signOut function
+              <DrawerClose asChild>
                 <Button
+                  onClick={() => signOut()}
                   className="w-full justify-start item-button text-base"
                   variant="ghost"
                 >
                   {t("Header.Sign out")}
                 </Button>
-              </form>
+              </DrawerClose>
             ) : (
-              <Link href="/sign-in" className="item-button">
-                {t("Header.Sign in")}
-              </Link>
+              <DrawerClose asChild>
+                <Link href="/sign-in" className="item-button">
+                  {t("Header.Sign in")}
+                </Link>
+              </DrawerClose>
             )}
           </div>
         </div>
