@@ -67,8 +67,10 @@ export default function useCartService() {
 
   const signOutAndClearCart = async () => {
     setCart(initialState);
-    //Add a query parameter to the callback URL.
-    await signOut({ callbackUrl: '/?signed_out=true' });
+    await signOut({ redirect: false });
+    // Manually perform a full page reload to the desired URL.
+    // This ensures all client-side state, including the session, is completely reset.
+    window.location.href = '/?signed_out=true';
   };
 
   // ... all other functions like addItem, removeItem, etc. remain the same
