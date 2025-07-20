@@ -24,7 +24,7 @@ export default async function UserButton() {
         <DropdownMenuTrigger className="header-button" asChild>
           <div className="flex items-center">
             <div className="flex flex-col text-xs md:text-sm text-left">
-              <span className="hidden md:block font-normal">
+              <span>
                 {t("Header.Hello")},{" "}
                 {session ? session.user.name : t("Header.sign in")}
               </span>
