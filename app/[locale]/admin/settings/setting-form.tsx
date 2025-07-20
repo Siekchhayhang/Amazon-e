@@ -30,7 +30,6 @@ const SettingForm = ({ setting }: { setting: ISettingInput }) => {
 
   const { toast } = useToast();
   async function onSubmit(values: ISettingInput) {
-    console.log("🚀 Submitting Form with values:", values);
     const res = await updateSetting({ ...values });
     if (!res.success) {
       toast({

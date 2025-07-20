@@ -1272,19 +1272,11 @@ We also provide helpful resources such as order tracking, product guides, and FA
         keywords: 'Collection Online Shop, Next.js, Tailwind CSS, MongoDB',
         url: 'https://collection-shop.com',
         logo: '/icons/logo.svg',
-        favicon: '/favicon.ico',
         slogan: 'Spend less, enjoy more.',
-        author: 'Collection Online Shop',
         copyright: '2000-2025, Collection Online Shop',
         email: 'chayhangs@gmail.com',
         address: '#529, Street 18MC, Sangkat Stueng Meanchey, Khan Meanchey, Phnom Penh city, Zip 12000 ',
         phone: '+(855) 15-366-377',
-      },
-      shop: {
-        location: 'Phnom Penh, Cambodia',
-        openingTime: '7:00 AM',
-        closingTime: '9:00 PM',
-        isOpen: true,
       },
       carousels: [
         {
