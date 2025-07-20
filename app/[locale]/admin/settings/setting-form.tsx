@@ -41,6 +41,8 @@ const SettingForm = ({ setting }: { setting: ISettingInput }) => {
         description: res.message,
       });
       setSetting(values as ClientSetting);
+      // Tell react-hook-form to update its state with the new values
+      form.reset(values);
     }
   }
 
