@@ -99,8 +99,7 @@ export default function UserButton() {
                       Are you sure you want to sign out?
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                      You will be logged out of your account and any unsaved
-                      changes might be lost.
+                      You will be logged out of your account.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

@@ -27,11 +27,19 @@ import { ChevronRight, MenuIcon, UserCircle, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
+import { useTransition } from "react";
 
 export default function Sidebar({ categories }: { categories: string[] }) {
   const { data: session } = useSession();
   const locale = useLocale();
   const t = useTranslations();
+  const [isPending, startTransition] = useTransition();
+
+  const handleSignOut = () => {
+    startTransition(() => {
+      SignOut();
+    });
+  };
 
   return (
     <Drawer direction={getDirection(locale) === "rtl" ? "left" : "left"}>
@@ -134,8 +142,11 @@ export default function Sidebar({ categories }: { categories: string[] }) {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => SignOut()}>
-                      Sign Out
+                    <AlertDialogAction
+                      onClick={handleSignOut}
+                      disabled={isPending}
+                    >
+                      {isPending ? "Signing Out..." : "Sign Out"}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
