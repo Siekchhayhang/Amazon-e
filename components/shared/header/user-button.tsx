@@ -1,4 +1,5 @@
 "use client";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,7 +9,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -24,15 +24,21 @@ import { ChevronDownIcon } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useState } from "react";
+import React, { useState } from "react";
 
 export default function UserButton() {
   const t = useTranslations();
   const { data: session } = useSession();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleSignOutClick = () => {
+    setIsDropdownOpen(false); // Close the dropdown
+    setIsDialogOpen(true); // Open the dialog
+  };
 
   return (
-    <div className="flex gap-2 items-center">
+    <React.Fragment>
       <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
         <DropdownMenuTrigger className="header-button" asChild>
           <div className="flex items-center">
@@ -67,6 +73,7 @@ export default function UserButton() {
               <Link className="w-full" href="/account/orders">
                 <DropdownMenuItem>{t("Header.Your orders")}</DropdownMenuItem>
               </Link>
+
               {session.user.role === "Admin" && (
                 <Link className="w-full" href="/admin/overview">
                   <DropdownMenuItem>{t("Header.Admin")}</DropdownMenuItem>
@@ -77,37 +84,13 @@ export default function UserButton() {
               onSelect={(e) => e.preventDefault()}
               className="p-0 mb-1"
             >
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    onClick={() => setIsDropdownOpen(false)}
-                    className="w-full py-4 px-2 h-4 justify-start"
-                    variant="ghost"
-                  >
-                    {t("Header.Sign out")}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="w-[90vw] max-w-md rounded-md">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Are you sure you want to sign out?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      You will be logged out of your account.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() =>
-                        signOut({ callbackUrl: "/?signed_out=true" })
-                      }
-                    >
-                      Sign Out
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Button
+                onClick={handleSignOutClick}
+                className="w-full py-4 px-2 h-4 justify-start"
+                variant="ghost"
+              >
+                {t("Header.Sign out")}
+              </Button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         ) : (
@@ -131,6 +114,27 @@ export default function UserButton() {
           </DropdownMenuContent>
         )}
       </DropdownMenu>
-    </div>
+
+      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <AlertDialogContent className="w-[90vw] max-w-md rounded-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you want to sign out?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be logged out of your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => signOut({ callbackUrl: "/?signed_out=true" })}
+            >
+              Sign Out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </React.Fragment>
   );
 }
