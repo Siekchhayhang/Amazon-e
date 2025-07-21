@@ -21,22 +21,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { SignOut } from "@/lib/actions/user.actions";
-import { useTransition } from "react";
 
 export default function UserButton() {
   const t = useTranslations();
   const { data: session } = useSession();
-  const [isPending, startTransition] = useTransition();
-
-  const handleSignOut = () => {
-    startTransition(() => {
-      SignOut();
-    });
-  };
 
   return (
     <div className="flex gap-2 items-center">
@@ -105,10 +96,11 @@ export default function UserButton() {
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={handleSignOut}
-                      disabled={isPending}
+                      onClick={() =>
+                        signOut({ callbackUrl: "/?signed_out=true" })
+                      }
                     >
-                      {isPending ? "Signing Out..." : "Sign Out"}
+                      Sign Out
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
