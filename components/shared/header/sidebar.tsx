@@ -1,4 +1,16 @@
-import { auth } from "@/auth";
+"use client";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -12,17 +24,14 @@ import {
 import { getDirection } from "@/i18n-config";
 import { SignOut } from "@/lib/actions/user.actions";
 import { ChevronRight, MenuIcon, UserCircle, X } from "lucide-react";
-import { getLocale, getTranslations } from "next-intl/server";
+import { useSession } from "next-auth/react";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 
-export default async function Sidebar({
-  categories,
-}: {
-  categories: string[];
-}) {
-  const session = await auth();
-  const locale = await getLocale();
-  const t = await getTranslations();
+export default function Sidebar({ categories }: { categories: string[] }) {
+  const { data: session } = useSession();
+  const locale = useLocale();
+  const t = useTranslations();
 
   return (
     <Drawer direction={getDirection(locale) === "rtl" ? "left" : "left"}>
@@ -105,16 +114,32 @@ export default async function Sidebar({
               </Link>
             </DrawerClose>
             {session ? (
-              // FIX: Reverted to using the server action in a form
-              <form action={SignOut} className="w-full">
-                <Button
-                  className="w-full justify-start item-button text-base"
-                  variant="ghost"
-                  type="submit"
-                >
-                  {t("Header.Sign out")}
-                </Button>
-              </form>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    className="w-full justify-start item-button text-base"
+                    variant="ghost"
+                  >
+                    {t("Header.Sign out")}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="w-[90vw] max-w-md rounded-md">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Are you sure you want to sign out?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      You will be logged out of your account.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => SignOut()}>
+                      Sign Out
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             ) : (
               <DrawerClose asChild>
                 <Link href="/sign-in" className="item-button">

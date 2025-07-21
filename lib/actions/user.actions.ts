@@ -10,7 +10,6 @@ import { addHours } from 'date-fns'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { connectToDatabase } from '../db'
-import Cart from '../db/models/cart.model'
 import User, { IUser } from '../db/models/user.model'
 import { formatError } from '../utils'
 import { UserPasswordUpdateSchema, UserSignUpSchema, UserUpdateSchema } from '../validator'
@@ -71,7 +70,6 @@ export async function updateUser(user: z.infer<typeof UserUpdateSchema>) {
     const updatedUser = await dbUser.save()
     revalidatePath('/admin/users')
 
-    // If user downgraded themselves, force sign out
     const session = await auth()
     if (session?.user?.id === user._id && previousRole !== user.role) {
       await signOut({ redirect: true })
@@ -136,12 +134,9 @@ export async function updateUserPassword(values: z.infer<typeof UserPasswordUpda
 
 export async function signInWithCredentials(user: IUserSignIn) {
   try {
-    // The authorize callback in auth.ts handles all the logic.
-    // signIn will throw an error if authorize returns null or throws an error.
     await signIn('credentials', { ...user, redirect: false })
     return { success: true, message: 'You have successfully signed in.' }
   } catch (error) {
-    // In next-auth v5, errors are thrown. We can inspect the error object.
     const errorMessage =
       (error instanceof Error ? error.message : undefined) || 'Something went wrong. Please try again.'
     if (errorMessage === 'EMAIL_NOT_VERIFIED') {
@@ -150,7 +145,6 @@ export async function signInWithCredentials(user: IUserSignIn) {
         message: 'Your email is not verified. Please check your inbox.',
       }
     }
-    // Optionally, check error type if error is an object
     if (typeof error === 'object' && error !== null && 'type' in error && (error as Record<string, unknown>).type === 'CredentialsSignin') {
       return { success: false, message: 'Invalid email or password.' }
     }
@@ -162,20 +156,6 @@ export const SignInWithGoogle = async () => {
   await signIn('google')
 }
 export const SignOut = async () => {
-  const session = await auth(); // Get the current session to find the user ID
-
-  if (session?.user?.id) {
-    try {
-      await connectToDatabase();
-      // 2. Clear the user's cart from the database.
-      await Cart.findOneAndDelete({ userId: session.user.id });
-    } catch (error) {
-      console.error("Failed to clear cart on sign out:", error);
-      // We don't block the sign-out process if this fails, but we log the error.
-    }
-  }
-
-  // 3. Proceed with the standard sign-out and redirect.
   await signOut({ redirectTo: '/?signed_out=true', redirect: true });
 }
 

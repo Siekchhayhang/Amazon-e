@@ -1,4 +1,16 @@
-import { auth } from "@/auth";
+"use client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,15 +20,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SignOut } from "@/lib/actions/user.actions";
 import { cn } from "@/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { SignOut } from "@/lib/actions/user.actions";
 
-export default async function UserButton() {
-  const t = await getTranslations();
-  const session = await auth();
+export default function UserButton() {
+  const t = useTranslations();
+  const { data: session } = useSession();
 
   return (
     <div className="flex gap-2 items-center">
@@ -60,17 +73,37 @@ export default async function UserButton() {
                 </Link>
               )}
             </DropdownMenuGroup>
-            {/* FIX: Reverted to using the server action in a form */}
-            <DropdownMenuItem className="p-0 mb-1">
-              <form action={SignOut} className="w-full">
-                <Button
-                  className="w-full py-4 px-2 h-4 justify-start"
-                  variant="ghost"
-                  type="submit"
-                >
-                  {t("Header.Sign out")}
-                </Button>
-              </form>
+            <DropdownMenuItem
+              onSelect={(e) => e.preventDefault()}
+              className="p-0 mb-1"
+            >
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    className="w-full py-4 px-2 h-4 justify-start"
+                    variant="ghost"
+                  >
+                    {t("Header.Sign out")}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="w-[90vw] max-w-md rounded-md">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Are you sure you want to sign out?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      You will be logged out of your account and any unsaved
+                      changes might be lost.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => SignOut()}>
+                      Sign Out
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </DropdownMenuItem>
           </DropdownMenuContent>
         ) : (
