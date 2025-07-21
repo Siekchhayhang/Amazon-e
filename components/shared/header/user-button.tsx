@@ -10,7 +10,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -26,10 +25,18 @@ import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { SignOut } from "@/lib/actions/user.actions";
+import { useTransition } from "react";
 
 export default function UserButton() {
   const t = useTranslations();
   const { data: session } = useSession();
+  const [isPending, startTransition] = useTransition();
+
+  const handleSignOut = () => {
+    startTransition(() => {
+      SignOut();
+    });
+  };
 
   return (
     <div className="flex gap-2 items-center">
@@ -98,8 +105,11 @@ export default function UserButton() {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => SignOut()}>
-                      Sign Out
+                    <AlertDialogAction
+                      onClick={handleSignOut}
+                      disabled={isPending}
+                    >
+                      {isPending ? "Signing Out..." : "Sign Out"}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
