@@ -14,6 +14,7 @@ import User, { IUser } from '../db/models/user.model'
 import { formatError } from '../utils'
 import { UserPasswordUpdateSchema, UserSignUpSchema, UserUpdateSchema } from '../validator'
 import { getSetting } from './setting.actions'
+import { redirect } from 'next/navigation'
 
 
 
@@ -156,7 +157,8 @@ export const SignInWithGoogle = async () => {
   await signIn('google')
 }
 export const SignOut = async () => {
-  await signOut({ redirectTo: '/?signed_out=true', redirect: true });
+  await signOut({ redirect: false });
+  redirect('/?signed_out=true');
 }
 
 // GET
