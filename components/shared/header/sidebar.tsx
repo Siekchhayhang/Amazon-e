@@ -26,14 +26,20 @@ import { ChevronRight, MenuIcon, UserCircle, X } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function Sidebar({ categories }: { categories: string[] }) {
   const { data: session } = useSession();
   const locale = useLocale();
   const t = useTranslations();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   return (
-    <Drawer direction={getDirection(locale) === "rtl" ? "left" : "left"}>
+    <Drawer
+      open={isDrawerOpen}
+      onOpenChange={setIsDrawerOpen}
+      direction={getDirection(locale) === "rtl" ? "left" : "left"}
+    >
       <DrawerTrigger className="header-button flex items-center !p-2">
         <MenuIcon className="h-5 w-5 mr-1" />
         {t("Header.All")}
@@ -116,6 +122,7 @@ export default function Sidebar({ categories }: { categories: string[] }) {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
+                    onClick={() => setIsDrawerOpen(false)}
                     className="w-full justify-start item-button text-base"
                     variant="ghost"
                   >

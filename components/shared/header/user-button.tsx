@@ -24,14 +24,16 @@ import { ChevronDownIcon } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function UserButton() {
   const t = useTranslations();
   const { data: session } = useSession();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
     <div className="flex gap-2 items-center">
-      <DropdownMenu>
+      <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
         <DropdownMenuTrigger className="header-button" asChild>
           <div className="flex items-center">
             <div className="flex flex-col text-xs md:text-sm text-left">
@@ -78,6 +80,7 @@ export default function UserButton() {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
+                    onClick={() => setIsDropdownOpen(false)}
                     className="w-full py-4 px-2 h-4 justify-start"
                     variant="ghost"
                   >
