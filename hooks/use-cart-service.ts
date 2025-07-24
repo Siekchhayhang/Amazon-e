@@ -1,12 +1,15 @@
+// hooks/useCartService.ts (Updated and Secure)
+
 import { getCart, saveCart } from '@/lib/actions/cart.actions';
 import { calcDeliveryDateAndPrice } from '@/lib/actions/order.actions';
 import { Cart, OrderItem, ShippingAddress } from '@/types';
 import { useSession } from 'next-auth/react';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { create } from 'zustand';
 import Cookies from 'js-cookie';
-import { signCart, verifyCartToken } from '@/utils/jwt';
 
+// ❌ No longer importing server-side JWT functions
+// import { signCart, verifyCartToken } from '@/utils/jwt';
 
 const initialState: Cart = {
   items: [],
@@ -20,87 +23,124 @@ const initialState: Cart = {
 };
 
 interface CartState {
+  isInitialized: boolean; // State to prevent re-initialization
   cart: Cart;
   setCart: (cart: Cart) => void;
+  setIsInitialized: (isInitialized: boolean) => void;
 }
 
 const useCartStore = create<CartState>((set) => ({
+  isInitialized: false,
   cart: initialState,
   setCart: (cart) => set({ cart }),
+  setIsInitialized: (isInitialized) => set({ isInitialized }),
 }));
 
 export default function useCartService() {
   const { data: session, status } = useSession();
-  const { cart, setCart } = useCartStore();
+  const { cart, setCart, isInitialized, setIsInitialized } = useCartStore();
 
-  const getCartFromCookies = (): Cart => {
+  // ✅ This function now securely gets the cart by calling the server API route.
+  const getCartFromServerSession = useCallback(async (): Promise<Cart> => {
     const token = Cookies.get('cart');
-    if (token) {
-      const decoded = verifyCartToken(token);
-      if (decoded && typeof decoded === 'object' && 'items' in decoded) {
-        return decoded as Cart;
+    if (!token) return initialState;
+
+    try {
+      // ✅ FIX: Corrected the API endpoint to match the file structure.
+      const response = await fetch('/api/session-cart');
+
+      if (!response.ok) {
+        console.error('Failed to get cart from server, status:', response.status);
+        Cookies.remove('cart'); // Remove invalid cookie
+        return initialState;
       }
+
+      const data = await response.json();
+      if (data && typeof data === 'object' && 'items' in data) {
+        return data as Cart;
+      }
+    } catch (error) {
+      console.error('Error fetching cart from server session:', error);
     }
     return initialState;
-  };
-
+  }, []);
 
   useEffect(() => {
     const loadCart = async () => {
-      if (status === 'authenticated' && session.user.id) {
+      if (isInitialized || status === 'loading') return;
+
+      if (status === 'authenticated' && session?.user?.id) {
         try {
-          const cookieCart = getCartFromCookies();
-          const dbCart = await getCart(session.user.id);
+          const cookieCart = await getCartFromServerSession();
+          const dbCart = (await getCart(session.user.id)) || { items: [] };
 
+          let finalCart = dbCart;
+
+          // If a guest cart exists in cookies, merge it with the user's DB cart.
           if (cookieCart.items.length > 0) {
-            const mergedItems = [...dbCart.items, ...cookieCart.items];
-            const uniqueItems = Array.from(new Set(mergedItems.map(item => item.product)))
-              .map(product => {
-                return mergedItems.find(item => item.product === product);
-              });
+            const mergedItems = [...dbCart.items];
+            // Use a Set to track unique items, as it correctly handles a list of unique values.
+            const itemSet = new Set(mergedItems.map(item => `${item.product}-${item.color}-${item.size}`));
 
-            const calculatedCart = await calcDeliveryDateAndPrice({
-              items: uniqueItems,
+            cookieCart.items.forEach(cookieItem => {
+              const itemKey = `${cookieItem.product}-${cookieItem.color}-${cookieItem.size}`;
+              if (!itemSet.has(itemKey)) {
+                mergedItems.push(cookieItem);
+              }
             });
-            await saveCart(session.user.id, { ...dbCart, ...calculatedCart, items: uniqueItems });
-            setCart({ ...initialState, ...calculatedCart, items: uniqueItems });
-            Cookies.remove('cart');
+
+            const calculatedCart = await calcDeliveryDateAndPrice({ items: mergedItems });
+            finalCart = { ...dbCart, ...calculatedCart, items: mergedItems };
+            await saveCart(session.user.id, finalCart);
+            Cookies.remove('cart'); // Clear cookie after successful merge.
           } else if (dbCart && dbCart.items) {
-            const calculatedCart = await calcDeliveryDateAndPrice({
-              items: dbCart.items,
-            });
-            setCart({ ...initialState, ...calculatedCart, items: dbCart.items });
-          } else {
-            setCart(initialState);
+            const calculatedCart = await calcDeliveryDateAndPrice({ items: dbCart.items });
+            finalCart = { ...initialState, ...calculatedCart, items: dbCart.items };
           }
+          setCart(finalCart);
         } catch (error) {
-          console.error("Failed to load cart from database:", error);
+          console.error("Failed to load or merge cart:", error);
           setCart(initialState);
         }
       } else if (status === 'unauthenticated') {
-        setCart(getCartFromCookies());
+        const cookieCart = await getCartFromServerSession();
+        setCart(cookieCart);
       }
+      setIsInitialized(true);
     };
-    loadCart();
-  }, [status, session?.user?.id, setCart]);
 
-  const updateCart = async (newCart: Cart) => {
+    loadCart();
+  }, [status, session?.user?.id, isInitialized, getCartFromServerSession, setCart, setIsInitialized]);
+
+  // ✅ This function now securely updates the cart by calling the server API route.
+  const updateCart = useCallback(async (newCart: Cart) => {
     setCart(newCart);
     if (session?.user?.id) {
       await saveCart(session.user.id, newCart);
     } else {
-      const token = signCart(newCart);
-      Cookies.set('cart', token, { expires: 7 });
+      // For guests, send the cart data to the server to get a signed token.
+      try {
+        // ✅ FIX: Corrected the API endpoint to match the file structure.
+        const response = await fetch('/api/session-cart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newCart),
+        });
+        const data = await response.json();
+        if (data.token) {
+          Cookies.set('cart', data.token, { expires: 7, path: '/' });
+        }
+      } catch (error) {
+        console.error('Failed to save cart to session:', error);
+      }
     }
-  };
+  }, [session?.user?.id, setCart]);
 
 
   const addItem = async (item: OrderItem, quantity: number) => {
+    // Client-side stock check is good for UX, but remember to re-validate on the server!
     const existItem = cart.items.find(
-      (x) =>
-        x.product === item.product &&
-        x.color === item.color &&
-        x.size === item.size
+      (x) => x.product === item.product && x.color === item.color && x.size === item.size
     );
 
     if (existItem && existItem.countInStock < quantity + existItem.quantity) {
@@ -154,11 +194,12 @@ export default function useCartService() {
   };
 
   const clearCart = async () => {
-    await updateCart({ ...cart, items: [], itemsPrice: 0, taxPrice: 0, shippingPrice: 0, totalPrice: 0 });
+    await updateCart({ ...initialState, items: [] });
   };
 
-  const setShippingAddress = (shippingAddress: ShippingAddress) => {
-    setCart({ ...cart, shippingAddress });
+  const setShippingAddress = async (shippingAddress: ShippingAddress) => {
+    const calculatedCart = await calcDeliveryDateAndPrice({ items: cart.items, shippingAddress });
+    await updateCart({ ...cart, ...calculatedCart, shippingAddress });
   };
 
   const setPaymentMethod = (paymentMethod: string) => {
@@ -170,7 +211,8 @@ export default function useCartService() {
       ...(cart.shippingAddress as ShippingAddress),
       ...updatedAddress,
     };
-    setCart({ ...cart, shippingAddress: newShippingAddress });
+    const calculatedCart = await calcDeliveryDateAndPrice({ items: cart.items, shippingAddress: newShippingAddress });
+    await updateCart({ ...cart, ...calculatedCart, shippingAddress: newShippingAddress });
   };
 
   const setDeliveryDateIndex = async (index: number) => {
@@ -179,11 +221,12 @@ export default function useCartService() {
       shippingAddress: cart.shippingAddress,
       deliveryDateIndex: index,
     });
-    setCart({ ...cart, ...calculatedCart });
+    await updateCart({ ...cart, ...calculatedCart });
   };
 
   return {
     cart,
+    isInitialized,
     addItem,
     updateItem,
     removeItem,
