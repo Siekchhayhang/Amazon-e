@@ -91,6 +91,7 @@ export default function useCartService() {
 
     const calculatedCart = await calcDeliveryDateAndPrice({ items: updatedItems, shippingAddress: cart.shippingAddress });
     await updateCart({ ...cart, ...calculatedCart, items: updatedItems });
+    return item.clientId;
   };
 
   const updateItem = async (item: OrderItem, quantity: number) => {
