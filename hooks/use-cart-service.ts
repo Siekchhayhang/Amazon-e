@@ -4,8 +4,8 @@ import { Cart, OrderItem, ShippingAddress } from '@/types';
 import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import { create } from 'zustand';
+import Cookies from 'js-cookie';
 
-// The initial state for a new or empty cart.
 const initialState: Cart = {
   items: [],
   itemsPrice: 0,
@@ -17,7 +17,6 @@ const initialState: Cart = {
   deliveryDateIndex: undefined,
 };
 
-// The Zustand store now only manages the local state synchronously.
 interface CartState {
   cart: Cart;
   setCart: (cart: Cart) => void;
@@ -28,17 +27,39 @@ const useCartStore = create<CartState>((set) => ({
   setCart: (cart) => set({ cart }),
 }));
 
-// The main hook that orchestrates state, API calls, and session management.
 export default function useCartService() {
   const { data: session, status } = useSession();
   const { cart, setCart } = useCartStore();
+
+  const getCartFromCookies = () => {
+    const cartFromCookies = Cookies.get('cart');
+    if (cartFromCookies) {
+      return JSON.parse(cartFromCookies);
+    }
+    return initialState;
+  };
 
   useEffect(() => {
     const loadCart = async () => {
       if (status === 'authenticated' && session.user.id) {
         try {
+          const cookieCart = getCartFromCookies();
           const dbCart = await getCart(session.user.id);
-          if (dbCart && dbCart.items) {
+
+          if (cookieCart.items.length > 0) {
+            const mergedItems = [...dbCart.items, ...cookieCart.items];
+            const uniqueItems = Array.from(new Set(mergedItems.map(item => item.product)))
+              .map(product => {
+                return mergedItems.find(item => item.product === product);
+              });
+
+            const calculatedCart = await calcDeliveryDateAndPrice({
+              items: uniqueItems,
+            });
+            await saveCart(session.user.id, { ...dbCart, ...calculatedCart, items: uniqueItems });
+            setCart({ ...initialState, ...calculatedCart, items: uniqueItems });
+            Cookies.remove('cart');
+          } else if (dbCart && dbCart.items) {
             const calculatedCart = await calcDeliveryDateAndPrice({
               items: dbCart.items,
             });
@@ -50,9 +71,8 @@ export default function useCartService() {
           console.error("Failed to load cart from database:", error);
           setCart(initialState);
         }
-      }
-      else if (status === 'unauthenticated') {
-        setCart(initialState);
+      } else if (status === 'unauthenticated') {
+        setCart(getCartFromCookies());
       }
     };
     loadCart();
@@ -62,10 +82,11 @@ export default function useCartService() {
     setCart(newCart);
     if (session?.user?.id) {
       await saveCart(session.user.id, newCart);
+    } else {
+      Cookies.set('cart', JSON.stringify(newCart));
     }
   };
 
-  // ... all other functions like addItem, removeItem, etc. remain the same
   const addItem = async (item: OrderItem, quantity: number) => {
     const existItem = cart.items.find(
       (x) =>
@@ -113,7 +134,6 @@ export default function useCartService() {
     await updateCart({ ...cart, ...calculatedCart, items: updatedItems });
   };
 
-
   const removeItem = async (item: OrderItem) => {
     const updatedItems = cart.items.filter(
       (x) =>
@@ -132,6 +152,7 @@ export default function useCartService() {
   const setShippingAddress = (shippingAddress: ShippingAddress) => {
     setCart({ ...cart, shippingAddress });
   };
+
   const setPaymentMethod = (paymentMethod: string) => {
     setCart({ ...cart, paymentMethod });
   };
