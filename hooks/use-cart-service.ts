@@ -5,6 +5,8 @@ import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import { create } from 'zustand';
 import Cookies from 'js-cookie';
+import { signCart, verifyCartToken } from '@/utils/jwt';
+
 
 const initialState: Cart = {
   items: [],
@@ -31,13 +33,17 @@ export default function useCartService() {
   const { data: session, status } = useSession();
   const { cart, setCart } = useCartStore();
 
-  const getCartFromCookies = () => {
-    const cartFromCookies = Cookies.get('cart');
-    if (cartFromCookies) {
-      return JSON.parse(cartFromCookies);
+  const getCartFromCookies = (): Cart => {
+    const token = Cookies.get('cart');
+    if (token) {
+      const decoded = verifyCartToken(token);
+      if (decoded && typeof decoded === 'object' && 'items' in decoded) {
+        return decoded as Cart;
+      }
     }
     return initialState;
   };
+
 
   useEffect(() => {
     const loadCart = async () => {
@@ -83,9 +89,11 @@ export default function useCartService() {
     if (session?.user?.id) {
       await saveCart(session.user.id, newCart);
     } else {
-      Cookies.set('cart', JSON.stringify(newCart));
+      const token = signCart(newCart);
+      Cookies.set('cart', token, { expires: 7 });
     }
   };
+
 
   const addItem = async (item: OrderItem, quantity: number) => {
     const existItem = cart.items.find(
