@@ -35,18 +35,22 @@ export const createOrder = async (clientSideCart: Cart) => {
     return { success: false, message: formatError(error) }
   }
 }
+
 export const createOrderFromCart = async (
   clientSideCart: Cart,
   userId: string
 ) => {
+  // ✅ FIX: await the async calculation function
+  const calculatedPart = await calcDeliveryDateAndPrice({
+    items: clientSideCart.items,
+    shippingAddress: clientSideCart.shippingAddress,
+    deliveryDateIndex: clientSideCart.deliveryDateIndex,
+  });
+
   const cart = {
     ...clientSideCart,
-    ...calcDeliveryDateAndPrice({
-      items: clientSideCart.items,
-      shippingAddress: clientSideCart.shippingAddress,
-      deliveryDateIndex: clientSideCart.deliveryDateIndex,
-    }),
-  }
+    ...calculatedPart,
+  };
 
   const order = OrderInputSchema.parse({
     user: userId,
@@ -58,9 +62,9 @@ export const createOrderFromCart = async (
     taxPrice: cart.taxPrice,
     totalPrice: cart.totalPrice,
     expectedDeliveryDate: cart.expectedDeliveryDate,
-  })
-  return await Order.create(order)
-}
+  });
+  return await Order.create(order);
+};
 
 export async function updateOrderToPaid(orderId: string) {
   try {

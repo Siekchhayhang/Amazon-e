@@ -227,11 +227,11 @@ export default function useCartService() {
     await updateCart({ ...cart, ...calculatedCart, shippingAddress: newShippingAddress });
   };
 
-  const setDeliveryDateIndex = async (index: number) => {
+  const setDeliveryDateIndex = async () => {
     const calculatedCart = await calcDeliveryDateAndPrice({
       items: cart.items,
       shippingAddress: cart.shippingAddress,
-      deliveryDateIndex: index,
+      deliveryDateIndex: cart.deliveryDateIndex,
     });
     await updateCart({ ...cart, ...calculatedCart });
   };
