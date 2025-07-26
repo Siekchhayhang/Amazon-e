@@ -152,7 +152,7 @@ const CheckoutForm = () => {
         description: res.message,
         variant: "default",
       });
-      clearCart();
+      await clearCart();
       router.push(`/checkout/${res.data?.orderId}`);
     }
   };
