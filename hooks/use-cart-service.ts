@@ -64,7 +64,7 @@ export default function useCartService() {
     }
     return initialState;
   }, []);
-
+  // ✅ This function now securely loads the cart from the server or cookies.
   useEffect(() => {
     const loadCart = async () => {
       if (isInitialized || status === 'loading') return;
@@ -79,7 +79,6 @@ export default function useCartService() {
           // If a guest cart exists in cookies, merge it with the user's DB cart.
           if (cookieCart.items.length > 0) {
             const mergedItems = [...dbCart.items];
-            // Use a Set to track unique items, as it correctly handles a list of unique values.
             const itemSet = new Set(mergedItems.map(item => `${item.product}-${item.color}-${item.size}`));
 
             cookieCart.items.forEach(cookieItem => {
@@ -89,13 +88,26 @@ export default function useCartService() {
               }
             });
 
-            const calculatedCart = await calcDeliveryDateAndPrice({ items: mergedItems });
+            // ✅ FIX: Pass the full context from the DB cart to the calculation
+            const calculatedCart = await calcDeliveryDateAndPrice({
+              items: mergedItems,
+              shippingAddress: dbCart.shippingAddress,
+              deliveryDateIndex: dbCart.deliveryDateIndex,
+            });
+
             finalCart = { ...dbCart, ...calculatedCart, items: mergedItems };
             await saveCart(session.user.id, finalCart);
             Cookies.remove('cart'); // Clear cookie after successful merge.
           } else if (dbCart && dbCart.items) {
-            const calculatedCart = await calcDeliveryDateAndPrice({ items: dbCart.items });
-            finalCart = { ...initialState, ...calculatedCart, items: dbCart.items };
+            // ✅ FIX: Also pass the full context here for a standard DB cart load
+            const calculatedCart = await calcDeliveryDateAndPrice({
+              items: dbCart.items,
+              shippingAddress: dbCart.shippingAddress,
+              deliveryDateIndex: dbCart.deliveryDateIndex,
+            });
+
+            // Combine the fresh calculations with the existing cart data
+            finalCart = { ...dbCart, ...calculatedCart };
           }
           setCart(finalCart);
         } catch (error) {
@@ -158,7 +170,7 @@ export default function useCartService() {
       )
       : [...cart.items, { ...item, quantity }];
 
-    const calculatedCart = await calcDeliveryDateAndPrice({ items: updatedItems, shippingAddress: cart.shippingAddress });
+    const calculatedCart = await calcDeliveryDateAndPrice({ items: updatedItems, shippingAddress: cart.shippingAddress, deliveryDateIndex: cart.deliveryDateIndex });
     await updateCart({ ...cart, ...calculatedCart, items: updatedItems });
     return item.clientId;
   };
@@ -211,7 +223,7 @@ export default function useCartService() {
       ...(cart.shippingAddress as ShippingAddress),
       ...updatedAddress,
     };
-    const calculatedCart = await calcDeliveryDateAndPrice({ items: cart.items, shippingAddress: newShippingAddress });
+    const calculatedCart = await calcDeliveryDateAndPrice({ items: cart.items, shippingAddress: newShippingAddress, deliveryDateIndex: cart.deliveryDateIndex });
     await updateCart({ ...cart, ...calculatedCart, shippingAddress: newShippingAddress });
   };
 
