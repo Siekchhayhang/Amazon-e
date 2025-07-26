@@ -281,48 +281,71 @@ export const calcDeliveryDateAndPrice = async ({
   shippingAddress,
   deliveryDateIndex,
 }: {
-  deliveryDateIndex?: number
-  items: OrderItem[]
-  shippingAddress?: ShippingAddress
+  deliveryDateIndex?: number;
+  items: OrderItem[];
+  shippingAddress?: ShippingAddress;
 }) => {
-  const { availableDeliveryDates } = await getSetting()
+  const { availableDeliveryDates } = await getSetting();
   const itemsPrice = round2(
     items.reduce((acc, item) => acc + item.price * item.quantity, 0)
-  )
+  );
 
-  const deliveryDate =
-    availableDeliveryDates[
-    deliveryDateIndex === undefined
-      ? availableDeliveryDates.length - 1
-      : deliveryDateIndex
-    ]
+  // ✅ FIX 1: Add a safety check for availableDeliveryDates
+  if (!availableDeliveryDates || availableDeliveryDates.length === 0) {
+    // Return a default state if no delivery options are available
+    return {
+      itemsPrice,
+      shippingPrice: undefined,
+      taxPrice: undefined,
+      totalPrice: itemsPrice,
+      deliveryDateIndex: undefined,
+      expectedDeliveryDate: undefined,
+    };
+  }
+
+  // ✅ FIX 2: Safely determine the delivery index, defaulting to 0 if invalid
+  let validIndex = deliveryDateIndex;
+  if (
+    validIndex === undefined ||
+    validIndex < 0 ||
+    validIndex >= availableDeliveryDates.length
+  ) {
+    validIndex = 0; // Default to the first available option
+  }
+
+  const selectedDeliveryOption = availableDeliveryDates[validIndex];
+
   const shippingPrice =
-    !shippingAddress || !deliveryDate
+    !shippingAddress || !selectedDeliveryOption
       ? undefined
-      : deliveryDate.freeShippingMinPrice > 0 &&
-        itemsPrice >= deliveryDate.freeShippingMinPrice
+      : selectedDeliveryOption.freeShippingMinPrice > 0 &&
+        itemsPrice >= selectedDeliveryOption.freeShippingMinPrice
         ? 0
-        : deliveryDate.shippingPrice
-  // Tax is calculated as 15% of itemsPrice
-  // If shippingAddress is not provided, taxPrice will be undefined
-  const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0)
+        : selectedDeliveryOption.shippingPrice;
+
+  const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0); // Assuming 0 tax for now
+
   const totalPrice = round2(
     itemsPrice +
     (shippingPrice ? round2(shippingPrice) : 0) +
     (taxPrice ? round2(taxPrice) : 0)
-  )
+  );
+
+  // ✅ FIX 3: Calculate and add the expectedDeliveryDate
+  const expectedDeliveryDate = new Date();
+  expectedDeliveryDate.setDate(
+    expectedDeliveryDate.getDate() + selectedDeliveryOption.daysToDeliver
+  );
+
   return {
-    availableDeliveryDates,
-    deliveryDateIndex:
-      deliveryDateIndex === undefined
-        ? availableDeliveryDates.length - 1
-        : deliveryDateIndex,
     itemsPrice,
     shippingPrice,
     taxPrice,
     totalPrice,
-  }
-}
+    deliveryDateIndex: validIndex,
+    expectedDeliveryDate,
+  };
+};
 
 // GET ORDERS BY USER
 export async function getOrderSummary(date: DateRange) {

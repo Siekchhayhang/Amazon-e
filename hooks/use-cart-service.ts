@@ -178,7 +178,7 @@ export default function useCartService() {
         : x
     );
 
-    const calculatedCart = await calcDeliveryDateAndPrice({ items: updatedItems, shippingAddress: cart.shippingAddress });
+    const calculatedCart = await calcDeliveryDateAndPrice({ items: updatedItems, shippingAddress: cart.shippingAddress, deliveryDateIndex: cart.deliveryDateIndex });
     await updateCart({ ...cart, ...calculatedCart, items: updatedItems });
   };
 
@@ -189,7 +189,7 @@ export default function useCartService() {
         x.color !== item.color ||
         x.size !== item.size
     );
-    const calculatedCart = await calcDeliveryDateAndPrice({ items: updatedItems, shippingAddress: cart.shippingAddress });
+    const calculatedCart = await calcDeliveryDateAndPrice({ items: updatedItems, shippingAddress: cart.shippingAddress, deliveryDateIndex: cart.deliveryDateIndex });
     await updateCart({ ...cart, ...calculatedCart, items: updatedItems });
   };
 
@@ -198,7 +198,7 @@ export default function useCartService() {
   };
 
   const setShippingAddress = async (shippingAddress: ShippingAddress) => {
-    const calculatedCart = await calcDeliveryDateAndPrice({ items: cart.items, shippingAddress });
+    const calculatedCart = await calcDeliveryDateAndPrice({ items: cart.items, shippingAddress, deliveryDateIndex: cart.deliveryDateIndex });
     await updateCart({ ...cart, ...calculatedCart, shippingAddress });
   };
 
