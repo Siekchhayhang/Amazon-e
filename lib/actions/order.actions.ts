@@ -14,6 +14,7 @@ import { paypal } from '../paypal'
 import { formatError, round2 } from '../utils'
 import { OrderInputSchema } from '../validator'
 import { getSetting } from './setting.actions'
+import { MONGODB_URI } from '../constants'
 
 // CREATE
 export const createOrder = async (clientSideCart: Cart) => {
@@ -40,28 +41,23 @@ export const createOrderFromCart = async (
   clientSideCart: Cart,
   userId: string
 ) => {
-  // ✅ FIX: await the async calculation function
   const calculatedPart = await calcDeliveryDateAndPrice({
     items: clientSideCart.items,
     shippingAddress: clientSideCart.shippingAddress,
     deliveryDateIndex: clientSideCart.deliveryDateIndex,
   });
 
-  const cart = {
-    ...clientSideCart,
-    ...calculatedPart,
-  };
-
   const order = OrderInputSchema.parse({
     user: userId,
-    items: cart.items,
-    shippingAddress: cart.shippingAddress,
-    paymentMethod: cart.paymentMethod,
-    itemsPrice: cart.itemsPrice,
-    shippingPrice: cart.shippingPrice,
-    taxPrice: cart.taxPrice,
-    totalPrice: cart.totalPrice,
-    expectedDeliveryDate: cart.expectedDeliveryDate,
+    // ✅ FIX: Use the secure items array returned from the calculation
+    items: calculatedPart.items,
+    shippingAddress: clientSideCart.shippingAddress,
+    paymentMethod: clientSideCart.paymentMethod,
+    itemsPrice: calculatedPart.itemsPrice,
+    shippingPrice: calculatedPart.shippingPrice,
+    taxPrice: calculatedPart.taxPrice,
+    totalPrice: calculatedPart.totalPrice,
+    expectedDeliveryDate: calculatedPart.expectedDeliveryDate,
   });
   return await Order.create(order);
 };
@@ -77,7 +73,7 @@ export async function updateOrderToPaid(orderId: string) {
     order.isPaid = true
     order.paidAt = new Date()
     await order.save()
-    if (!process.env.MONGODB_URI?.startsWith('mongodb://localhost'))
+    if (!MONGODB_URI?.startsWith('mongodb://localhost'))
       await updateProductStock(order._id)
     if (order.user.email) await sendPurchaseReceipt({ order })
     revalidatePath(`/account/orders/${orderId}`)
@@ -289,37 +285,59 @@ export const calcDeliveryDateAndPrice = async ({
   items: OrderItem[];
   shippingAddress?: ShippingAddress;
 }) => {
-  // ✅ ADD THIS LOG
-  console.log('[DEBUG 2: calcDeliveryDateAndPrice] Received deliveryDateIndex:', deliveryDateIndex);
 
-  const { availableDeliveryDates } = await getSetting();
-  // ✅ ADD THIS LOG
-  console.log('[DEBUG 3: calcDeliveryDateAndPrice] availableDeliveryDates from getSetting:', JSON.stringify(availableDeliveryDates, null, 2));
-  const itemsPrice = round2(
-    items.reduce((acc, item) => acc + item.price * item.quantity, 0)
+  const productIds = items.map((item) => item.product);
+  const productsFromDb = await Product.find({ _id: { $in: productIds } });
+
+  // ✅ FIX: Create a new, secure items array using data from your database
+  const secureItems: OrderItem[] = [];
+
+  for (const dbProduct of productsFromDb) {
+    const clientItem = items.find((item) => item.product === dbProduct._id.toString());
+    if (clientItem) {
+      secureItems.push({
+        // Authoritative data from the database
+        product: dbProduct._id.toString(),
+        name: dbProduct.name,
+        slug: dbProduct.slug,
+        image: dbProduct.images[0],
+        price: dbProduct.price,
+        category: dbProduct.category,
+        countInStock: dbProduct.countInStock,
+        // User-provided data that is safe to keep
+        quantity: clientItem.quantity,
+        color: clientItem.color,
+        size: clientItem.size,
+        clientId: clientItem.clientId,
+      });
+    }
+  }
+
+  const secureItemsPrice = round2(
+    secureItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
   );
 
-  // ✅ FIX 1: Add a safety check for availableDeliveryDates
+  const { availableDeliveryDates } = await getSetting();
+
   if (!availableDeliveryDates || availableDeliveryDates.length === 0) {
-    // Return a default state if no delivery options are available
     return {
-      itemsPrice,
+      items: secureItems, // Still return the secure items
+      itemsPrice: secureItemsPrice,
       shippingPrice: undefined,
       taxPrice: undefined,
-      totalPrice: itemsPrice,
+      totalPrice: secureItemsPrice,
       deliveryDateIndex: undefined,
       expectedDeliveryDate: undefined,
     };
   }
 
-  // ✅ FIX 2: Safely determine the delivery index, defaulting to 0 if invalid
   let validIndex = deliveryDateIndex;
   if (
     validIndex === undefined ||
     validIndex < 0 ||
     validIndex >= availableDeliveryDates.length
   ) {
-    validIndex = 0; // Default to the first available option
+    validIndex = 0;
   }
 
   const selectedDeliveryOption = availableDeliveryDates[validIndex];
@@ -328,26 +346,26 @@ export const calcDeliveryDateAndPrice = async ({
     !shippingAddress || !selectedDeliveryOption
       ? undefined
       : selectedDeliveryOption.freeShippingMinPrice > 0 &&
-        itemsPrice >= selectedDeliveryOption.freeShippingMinPrice
+        secureItemsPrice >= selectedDeliveryOption.freeShippingMinPrice
         ? 0
         : selectedDeliveryOption.shippingPrice;
 
-  const taxPrice = !shippingAddress ? undefined : round2(itemsPrice * 0); // Assuming 0 tax for now
+  const taxPrice = !shippingAddress ? undefined : round2(secureItemsPrice * 0);
 
   const totalPrice = round2(
-    itemsPrice +
+    secureItemsPrice +
     (shippingPrice ? round2(shippingPrice) : 0) +
     (taxPrice ? round2(taxPrice) : 0)
   );
 
-  // ✅ FIX 3: Calculate and add the expectedDeliveryDate
   const expectedDeliveryDate = new Date();
   expectedDeliveryDate.setDate(
     expectedDeliveryDate.getDate() + selectedDeliveryOption.daysToDeliver
   );
 
   return {
-    itemsPrice,
+    items: secureItems, // ✅ Return the new secure items array
+    itemsPrice: secureItemsPrice,
     shippingPrice,
     taxPrice,
     totalPrice,
@@ -356,7 +374,8 @@ export const calcDeliveryDateAndPrice = async ({
   };
 };
 
-// GET ORDERS BY USER
+// ... (The rest of your file for getOrderSummary etc. remains the same)
+
 export async function getOrderSummary(date: DateRange) {
   await connectToDatabase()
 

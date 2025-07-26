@@ -1,4 +1,3 @@
-// hooks/useCartService.ts (Updated and Secure)
 
 import { getCart, saveCart } from '@/lib/actions/cart.actions';
 import { calcDeliveryDateAndPrice } from '@/lib/actions/order.actions';
@@ -7,9 +6,6 @@ import { useSession } from 'next-auth/react';
 import { useEffect, useCallback } from 'react';
 import { create } from 'zustand';
 import Cookies from 'js-cookie';
-
-// ❌ No longer importing server-side JWT functions
-// import { signCart, verifyCartToken } from '@/utils/jwt';
 
 const initialState: Cart = {
   items: [],
