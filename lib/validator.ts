@@ -137,8 +137,7 @@ export const OrderInputSchema = z.object({
 
 export const CartSchema = z.object({
   items: z
-    .array(OrderItemSchema)
-    .min(1, 'Order must contain at least one item'),
+    .array(OrderItemSchema).min(1, 'Cart must contain at least one item'),
   itemsPrice: z.number(),
   taxPrice: z.optional(z.number()),
   shippingPrice: z.optional(z.number()),

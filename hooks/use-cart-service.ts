@@ -64,7 +64,8 @@ export default function useCartService() {
     }
     return initialState;
   }, []);
-  // ✅ This function now securely loads the cart from the server or cookies.
+  // hooks/useCartService.ts
+
   useEffect(() => {
     const loadCart = async () => {
       if (isInitialized || status === 'loading') return;
@@ -72,11 +73,9 @@ export default function useCartService() {
       if (status === 'authenticated' && session?.user?.id) {
         try {
           const cookieCart = await getCartFromServerSession();
-          const dbCart = (await getCart(session.user.id)) || { items: [] };
+          const dbCart = (await getCart(session.user.id)) || initialState;
 
-          let finalCart = dbCart;
-
-          // If a guest cart exists in cookies, merge it with the user's DB cart.
+          // SCENARIO 1: Guest logs in, merge the cookie cart with their DB cart.
           if (cookieCart.items.length > 0) {
             const mergedItems = [...dbCart.items];
             const itemSet = new Set(mergedItems.map(item => `${item.product}-${item.color}-${item.size}`));
@@ -88,33 +87,50 @@ export default function useCartService() {
               }
             });
 
-            // ✅ FIX: Pass the full context from the DB cart to the calculation
+            // Prioritize the guest's most recent shipping address and delivery choice
+            const finalShippingAddress = cookieCart.shippingAddress || dbCart.shippingAddress;
+            const finalDeliveryIndex = cookieCart.deliveryDateIndex ?? dbCart.deliveryDateIndex;
+
             const calculatedCart = await calcDeliveryDateAndPrice({
               items: mergedItems,
-              shippingAddress: dbCart.shippingAddress,
-              deliveryDateIndex: dbCart.deliveryDateIndex,
+              shippingAddress: finalShippingAddress,
+              deliveryDateIndex: finalDeliveryIndex,
             });
 
-            finalCart = { ...dbCart, ...calculatedCart, items: mergedItems };
+            // Combine the DB cart, the more recent cookie cart info, and fresh calculations
+            const finalCart = {
+              ...dbCart,
+              ...cookieCart,
+              ...calculatedCart,
+              items: mergedItems,
+              shippingAddress: finalShippingAddress,
+              deliveryDateIndex: finalDeliveryIndex,
+            };
+
             await saveCart(session.user.id, finalCart);
-            Cookies.remove('cart'); // Clear cookie after successful merge.
-          } else if (dbCart && dbCart.items) {
-            // ✅ FIX: Also pass the full context here for a standard DB cart load
+            setCart(finalCart);
+            Cookies.remove('cart'); // Clear the guest cookie AFTER successful merge
+
+          } else if (dbCart.items.length > 0) {
+            // SCENARIO 2: A returning user with a saved cart (no merge needed).
             const calculatedCart = await calcDeliveryDateAndPrice({
               items: dbCart.items,
               shippingAddress: dbCart.shippingAddress,
               deliveryDateIndex: dbCart.deliveryDateIndex,
             });
-
-            // Combine the fresh calculations with the existing cart data
-            finalCart = { ...dbCart, ...calculatedCart };
+            // ✅ FIX: Combine dbCart with calculatedCart, preserving saved address/payment.
+            const finalCart = { ...dbCart, ...calculatedCart };
+            setCart(finalCart);
+          } else {
+            // SCENARIO 3: A new or existing user with a completely empty cart.
+            setCart(initialState);
           }
-          setCart(finalCart);
         } catch (error) {
           console.error("Failed to load or merge cart:", error);
           setCart(initialState);
         }
       } else if (status === 'unauthenticated') {
+        // Logic for guests remains the same
         const cookieCart = await getCartFromServerSession();
         setCart(cookieCart);
       }

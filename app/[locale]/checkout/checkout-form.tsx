@@ -120,11 +120,20 @@ const CheckoutForm = () => {
     useState<boolean>(false);
 
   const handlePlaceOrder = async () => {
+    // ✅ FIX: Add a safeguard to prevent placing an order with missing info
+    if (deliveryDateIndex === undefined || !shippingAddress) {
+      toast({
+        description: "Please select a shipping address and delivery option.",
+        variant: "destructive",
+      });
+      return;
+    }
     const res = await createOrder({
       items,
       shippingAddress,
+      // ✅ FIX: Safely access daysToDeliver without the '!' operator
       expectedDeliveryDate: calculateFutureDate(
-        availableDeliveryDates[deliveryDateIndex!].daysToDeliver
+        availableDeliveryDates[deliveryDateIndex].daysToDeliver
       ),
       deliveryDateIndex,
       paymentMethod,
@@ -231,7 +240,7 @@ const CheckoutForm = () => {
                 )}
               </span>
             </div>
-            <div className="flex justify-between  pt-4 font-bold text-lg">
+            <div className="flex justify-between  pt-4 font-bold text-lg">
               <span> Order Total:</span>
               <span>
                 <ProductPrice price={totalPrice} plain />
@@ -250,7 +259,7 @@ const CheckoutForm = () => {
           {/* shipping address */}
           <div>
             {isAddressSelected && shippingAddress ? (
-              <div className="grid grid-cols-1 md:grid-cols-12    my-3  pb-3">
+              <div className="grid grid-cols-1 md:grid-cols-12    my-3  pb-3">
                 <div className="col-span-5 flex text-lg font-bold ">
                   <span className="w-8">1 </span>
                   <span>Shipping address</span>
@@ -413,7 +422,7 @@ const CheckoutForm = () => {
                           />
                         </div>
                       </CardContent>
-                      <CardFooter className="  p-4">
+                      <CardFooter className="  p-4">
                         <Button
                           type="submit"
                           className="rounded-full font-bold"
@@ -430,8 +439,8 @@ const CheckoutForm = () => {
           {/* payment method */}
           <div className="border-y">
             {isPaymentMethodSelected && paymentMethod ? (
-              <div className="grid  grid-cols-1 md:grid-cols-12  my-3 pb-3">
-                <div className="flex text-lg font-bold  col-span-5">
+              <div className="grid  grid-cols-1 md:grid-cols-12  my-3 pb-3">
+                <div className="flex text-lg font-bold  col-span-5">
                   <span className="w-8">2 </span>
                   <span>Payment Method</span>
                 </div>
@@ -498,8 +507,8 @@ const CheckoutForm = () => {
           {/* items and delivery date */}
           <div>
             {isDeliveryDateSelected && deliveryDateIndex != undefined ? (
-              <div className="grid  grid-cols-1 md:grid-cols-12  my-3 pb-3">
-                <div className="flex text-lg font-bold  col-span-5">
+              <div className="grid  grid-cols-1 md:grid-cols-12  my-3 pb-3">
+                <div className="flex text-lg font-bold  col-span-5">
                   <span className="w-8">3 </span>
                   <span>Items and shipping</span>
                 </div>
@@ -537,136 +546,145 @@ const CheckoutForm = () => {
               </div>
             ) : isPaymentMethodSelected && isAddressSelected ? (
               <>
-                <div className="flex text-primary  text-lg font-bold my-2">
+                <div className="flex text-primary  text-lg font-bold my-2">
                   <span className="w-8">3 </span>
                   <span>Review items and shipping</span>
                 </div>
                 <Card className="md:ml-8">
-                  <CardContent className="p-4">
-                    <p className="mb-2">
-                      <span className="text-lg font-bold text-green-700">
-                        Arriving{" "}
-                        {
-                          formatDateTime(
-                            calculateFutureDate(
-                              availableDeliveryDates[deliveryDateIndex!]
-                                .daysToDeliver
-                            )
-                          ).dateOnly
-                        }
-                      </span>{" "}
-                      If you order in the next {timeUntilMidnight().hours} hours
-                      and {timeUntilMidnight().minutes} minutes.
-                    </p>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        {items.map((item, _index) => (
-                          <div key={_index} className="flex gap-4 py-2">
-                            <div className="relative w-16 h-16">
-                              <Image
-                                src={item.image}
-                                alt={item.name}
-                                fill
-                                sizes="20vw"
-                                style={{
-                                  objectFit: "contain",
-                                }}
-                              />
-                            </div>
+                  {/* ✅ FIX: Wrap the content in a conditional render */}
+                  {deliveryDateIndex !== undefined && (
+                    <CardContent className="p-4">
+                      <p className="mb-2">
+                        <span className="text-lg font-bold text-green-700">
+                          Arriving{" "}
+                          {
+                            formatDateTime(
+                              calculateFutureDate(
+                                // ✅ FIX: Safely access without '!'
+                                availableDeliveryDates[deliveryDateIndex]
+                                  .daysToDeliver
+                              )
+                            ).dateOnly
+                          }
+                        </span>{" "}
+                        If you order in the next {timeUntilMidnight().hours}{" "}
+                        hours and {timeUntilMidnight().minutes} minutes.
+                      </p>
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                          {items.map((item, _index) => (
+                            <div key={_index} className="flex gap-4 py-2">
+                              <div className="relative w-16 h-16">
+                                <Image
+                                  src={item.image}
+                                  alt={item.name}
+                                  fill
+                                  sizes="20vw"
+                                  style={{
+                                    objectFit: "contain",
+                                  }}
+                                />
+                              </div>
 
-                            <div className="flex-1">
-                              <p className="font-semibold">
-                                {item.name}, {item.color}, {item.size}
-                              </p>
-                              <p className="font-bold">
-                                <ProductPrice price={item.price} plain />
-                              </p>
+                              <div className="flex-1">
+                                <p className="font-semibold">
+                                  {item.name}, {item.color}, {item.size}
+                                </p>
+                                <p className="font-bold">
+                                  <ProductPrice price={item.price} plain />
+                                </p>
 
-                              <Select
-                                value={item.quantity.toString()}
-                                onValueChange={(value) => {
-                                  if (value === "0") removeItem(item);
-                                  else updateItem(item, Number(value));
-                                }}
-                              >
-                                <SelectTrigger className="w-24">
-                                  <SelectValue>
-                                    Qty: {item.quantity}
-                                  </SelectValue>
-                                </SelectTrigger>
-                                <SelectContent position="popper">
-                                  {Array.from({
-                                    length: item.countInStock,
-                                  }).map((_, i) => (
-                                    <SelectItem key={i + 1} value={`${i + 1}`}>
-                                      {i + 1}
+                                <Select
+                                  value={item.quantity.toString()}
+                                  onValueChange={(value) => {
+                                    if (value === "0") removeItem(item);
+                                    else updateItem(item, Number(value));
+                                  }}
+                                >
+                                  <SelectTrigger className="w-24">
+                                    <SelectValue>
+                                      Qty: {item.quantity}
+                                    </SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent position="popper">
+                                    {Array.from({
+                                      length: item.countInStock,
+                                    }).map((_, i) => (
+                                      <SelectItem
+                                        key={i + 1}
+                                        value={`${i + 1}`}
+                                      >
+                                        {i + 1}
+                                      </SelectItem>
+                                    ))}
+                                    <SelectItem key="delete" value="0">
+                                      Delete
                                     </SelectItem>
-                                  ))}
-                                  <SelectItem key="delete" value="0">
-                                    Delete
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
+                          ))}
+                        </div>
+                        <div>
+                          <div className=" font-bold">
+                            <p className="mb-2"> Choose a shipping speed:</p>
+                            <ul>
+                              <RadioGroup
+                                // ✅ FIX: Safely access without '!'
+                                value={
+                                  availableDeliveryDates[deliveryDateIndex].name
+                                }
+                                onValueChange={(value) =>
+                                  setDeliveryDateIndex(
+                                    availableDeliveryDates.findIndex(
+                                      (address) => address.name === value
+                                    )!
+                                  )
+                                }
+                              >
+                                {availableDeliveryDates.map((dd) => (
+                                  <div key={dd.name} className="flex">
+                                    <RadioGroupItem
+                                      value={dd.name}
+                                      id={`address-${dd.name}`}
+                                    />
+                                    <Label
+                                      className="pl-2 space-y-2 cursor-pointer"
+                                      htmlFor={`address-${dd.name}`}
+                                    >
+                                      <div className="text-green-700 font-semibold">
+                                        {
+                                          formatDateTime(
+                                            calculateFutureDate(
+                                              dd.daysToDeliver
+                                            )
+                                          ).dateOnly
+                                        }
+                                      </div>
+                                      <div>
+                                        {(dd.freeShippingMinPrice > 0 &&
+                                        itemsPrice >= dd.freeShippingMinPrice
+                                          ? 0
+                                          : dd.shippingPrice) === 0 ? (
+                                          "FREE Shipping"
+                                        ) : (
+                                          <ProductPrice
+                                            price={dd.shippingPrice}
+                                            plain
+                                          />
+                                        )}
+                                      </div>
+                                    </Label>
+                                  </div>
+                                ))}
+                              </RadioGroup>
+                            </ul>
                           </div>
-                        ))}
-                      </div>
-                      <div>
-                        <div className=" font-bold">
-                          <p className="mb-2"> Choose a shipping speed:</p>
-
-                          <ul>
-                            <RadioGroup
-                              value={
-                                availableDeliveryDates[deliveryDateIndex!].name
-                              }
-                              onValueChange={(value) =>
-                                setDeliveryDateIndex(
-                                  availableDeliveryDates.findIndex(
-                                    (address) => address.name === value
-                                  )!
-                                )
-                              }
-                            >
-                              {availableDeliveryDates.map((dd) => (
-                                <div key={dd.name} className="flex">
-                                  <RadioGroupItem
-                                    value={dd.name}
-                                    id={`address-${dd.name}`}
-                                  />
-                                  <Label
-                                    className="pl-2 space-y-2 cursor-pointer"
-                                    htmlFor={`address-${dd.name}`}
-                                  >
-                                    <div className="text-green-700 font-semibold">
-                                      {
-                                        formatDateTime(
-                                          calculateFutureDate(dd.daysToDeliver)
-                                        ).dateOnly
-                                      }
-                                    </div>
-                                    <div>
-                                      {(dd.freeShippingMinPrice > 0 &&
-                                      itemsPrice >= dd.freeShippingMinPrice
-                                        ? 0
-                                        : dd.shippingPrice) === 0 ? (
-                                        "FREE Shipping"
-                                      ) : (
-                                        <ProductPrice
-                                          price={dd.shippingPrice}
-                                          plain
-                                        />
-                                      )}
-                                    </div>
-                                  </Label>
-                                </div>
-                              ))}
-                            </RadioGroup>
-                          </ul>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
+                    </CardContent>
+                  )}
                 </Card>
               </>
             ) : (

@@ -289,7 +289,12 @@ export const calcDeliveryDateAndPrice = async ({
   items: OrderItem[];
   shippingAddress?: ShippingAddress;
 }) => {
+  // ✅ ADD THIS LOG
+  console.log('[DEBUG 2: calcDeliveryDateAndPrice] Received deliveryDateIndex:', deliveryDateIndex);
+
   const { availableDeliveryDates } = await getSetting();
+  // ✅ ADD THIS LOG
+  console.log('[DEBUG 3: calcDeliveryDateAndPrice] availableDeliveryDates from getSetting:', JSON.stringify(availableDeliveryDates, null, 2));
   const itemsPrice = round2(
     items.reduce((acc, item) => acc + item.price * item.quantity, 0)
   );

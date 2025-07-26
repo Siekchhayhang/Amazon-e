@@ -14,19 +14,17 @@ import { revalidatePath } from 'next/cache';
  * Wrapped in React.cache to de-duplicate requests within a single render.
  * It handles the initial creation of settings from seed data if none exist.
  */
+// Add this log inside your getSetting function
 export const getSetting = cache(async (): Promise<ISettingInput> => {
   await connectToDatabase();
   let setting = await Setting.findOne().lean();
 
   if (!setting) {
     console.log('No settings found, creating from seed data...');
-    // If no setting in DB, create it from the seed data.
-    // The result of `create` is a Mongoose document, so we convert it.
     await Setting.create(data.settings[0]);
     setting = await Setting.findOne().lean();
   }
 
-  // Ensure the final object is plain and serializable.
   return JSON.parse(JSON.stringify(setting));
 });
 
