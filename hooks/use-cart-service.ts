@@ -128,39 +128,30 @@ export default function useCartService() {
     }
   }, [session?.user?.id, setCart]);
 
-  const addItem = async (item: OrderItem, quantity: number): Promise<Cart> => {
+  const addItem = async (item: OrderItem, quantity: number) => {
+    // Client-side stock check is good for UX, but remember to re-validate on the server!
     const existItem = cart.items.find(
       (x) => x.product === item.product && x.color === item.color && x.size === item.size
     );
-
     if (existItem && existItem.countInStock < quantity + existItem.quantity) {
       throw new Error('Not enough items in stock');
     }
-
     if (!existItem && item.countInStock < quantity) {
       throw new Error('Not enough items in stock');
     }
-
     const updatedItems = existItem
       ? cart.items.map((x) =>
         x.product === existItem.product && x.color === existItem.color && x.size === existItem.size
           ? { ...existItem, quantity: existItem.quantity + quantity }
-          : x
-      )
-      : [...cart.items, { ...item, quantity }];
+          : x) : [...cart.items, { ...item, quantity }];
 
-    const calculatedCart = await calcDeliveryDateAndPrice({
-      items: updatedItems,
-      shippingAddress: cart.shippingAddress,
-    });
+    const calculatedCart = await calcDeliveryDateAndPrice({ items: updatedItems, shippingAddress: cart.shippingAddress });
 
-    const finalCart = { ...cart, ...calculatedCart, items: updatedItems };
+    await updateCart({ ...cart, ...calculatedCart, items: updatedItems });
 
-    await updateCart(finalCart);
+    return item.clientId;
 
-    return finalCart; // ✅ return full updated cart
   };
-
   const updateItem = async (item: OrderItem, quantity: number) => {
     const existItem = cart.items.find(
       (x) =>
