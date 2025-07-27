@@ -43,7 +43,7 @@ export default function useCartService() {
     if (!token) return initialState;
     try {
       // ✅ FIX: Corrected the API endpoint to match the file structure.
-      const response = await fetch('/api/session-cart');
+      const response = await fetch('/api/cart/session-cart');
       if (!response.ok) {
         console.error('Failed to get cart from server, status:', response.status);
         Cookies.remove('cart'); // Remove invalid cookie
@@ -112,7 +112,7 @@ export default function useCartService() {
       // For guests, send the cart data to the server to get a signed token.
       try {
         // ✅ FIX: Corrected the API endpoint to match the file structure.
-        const response = await fetch('/api/session-cart', {
+        const response = await fetch('/api/cart/session-cart', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newCart),

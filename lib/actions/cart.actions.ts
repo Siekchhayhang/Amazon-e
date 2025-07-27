@@ -30,7 +30,7 @@ export async function saveCart(userId: string, cartData: unknown) {
         await connectToDatabase();
         await Cart.findOneAndUpdate(
             { userId },
-            { items: validatedCart.items }, // Save only validated items
+            { items: validatedCart.items, deliveryDate: validatedCart.deliveryDate }, // Save only validated items
             { upsert: true, new: true }
         );
 

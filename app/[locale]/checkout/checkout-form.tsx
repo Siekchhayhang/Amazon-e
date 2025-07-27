@@ -153,6 +153,7 @@ const CheckoutForm = () => {
         variant: "default",
       });
       await clearCart();
+      console.log("Cleared cart after checkout:", clearCart);
       router.push(`/checkout/${res.data?.orderId}`);
     }
   };
