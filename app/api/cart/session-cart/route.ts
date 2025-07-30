@@ -1,60 +1,44 @@
-import { CartSchema } from "@/lib/validator";
-import { signCart, verifyCartToken } from "@/utils/jwt";
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { sign, verify } from 'jsonwebtoken';
+import { NextRequest, NextResponse } from 'next/server';
 
-/**
- * @route POST /api/cart/session
- * @description Creates a signed JWT for an unauthenticated user's cart.
- */
-export async function POST(req: NextRequest) {
+const secret = process.env.CART_SECRET || 'secret';
+
+// Get the cart from the session
+export async function GET(req: NextRequest) {
+    const token = req.cookies.get('cart')?.value;
+    if (!token) {
+        return NextResponse.json({ items: [] });
+    }
     try {
-        const cartData = await req.json();
-
-        // Validate the incoming data against the detailed schema
-        const validatedCart = CartSchema.parse(cartData);
-
-        // The secret is only used here on the server
-        const token = signCart(validatedCart);
-
-        return NextResponse.json({ token });
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            // Provide detailed error messages in development for easier debugging
-            return NextResponse.json({ error: 'Invalid cart data provided.', details: error.errors }, { status: 400 });
-        }
-        console.error('[CART API] Error creating cart session:', error);
-        return NextResponse.json({ error: 'Failed to create cart session.' }, { status: 500 });
+        const cart = await verify(token, secret);
+        return NextResponse.json(cart);
+    } catch (e) {
+        console.error('Invalid cart token:', e);
+        const response = NextResponse.json({ items: [] });
+        response.cookies.delete('cart');
+        return response;
     }
 }
 
-/**
- * @route GET /api/cart/session
- * @description Verifies a cart token from a cookie and returns the cart data.
- */
-export async function GET(req: NextRequest) {
+// Save the cart to the session
+export async function POST(req: NextRequest) {
     try {
-        const token = req.cookies.get('cart')?.value;
-
-        if (!token) {
-            return NextResponse.json({ error: 'No cart token found.' }, { status: 400 });
-        }
-
-        // The secret is only used here on the server
-        const decodedCart = verifyCartToken(token);
-
-        if (decodedCart && typeof decodedCart === 'object') {
-            // Re-validate the decoded data here as well for extra security
-            const validationResult = CartSchema.safeParse(decodedCart);
-            if (!validationResult.success) {
-                return NextResponse.json({ error: 'Invalid cart data in token.' }, { status: 400 });
-            }
-            return NextResponse.json(validationResult.data);
-        }
-
-        return NextResponse.json({ error: 'Invalid or expired cart token.' }, { status: 401 });
-    } catch (error) {
-        console.error('[CART API] Error verifying cart session:', error);
-        return NextResponse.json({ error: 'Failed to verify cart session.' }, { status: 500 });
+        const cart = await req.json();
+        const token = await sign(cart, secret, { expiresIn: '7d' });
+        const response = NextResponse.json({ token });
+        response.cookies.set('cart', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            path: '/',
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+        });
+        return response;
+    } catch (e) {
+        console.error('Failed to save cart:', e);
+        return NextResponse.json(
+            { message: 'Failed to save cart' },
+            { status: 500 }
+        );
     }
 }

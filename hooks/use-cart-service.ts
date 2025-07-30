@@ -1,10 +1,9 @@
-import { getCart, saveCart } from '@/lib/actions/cart.actions';
+import { getCart, saveCart, mergeCarts } from '@/lib/actions/cart.actions';
 import { calcDeliveryDateAndPrice } from '@/lib/actions/order.actions';
 import { Cart, OrderItem, ShippingAddress } from '@/types';
 import { useSession } from 'next-auth/react';
 import { useEffect, useCallback } from 'react';
 import { create } from 'zustand';
-import Cookies from 'js-cookie';
 
 const initialState: Cart = {
   items: [],
@@ -39,16 +38,14 @@ export default function useCartService() {
   const { cart, setCart, isInitialized, setIsInitialized } = useCartStore();
   // ✅ This function now securely gets the cart by calling the server API route.
   const getCartFromServerSession = useCallback(async (): Promise<Cart> => {
-    const token = Cookies.get('cart');
-    if (!token) return initialState;
     try {
-      // ✅ FIX: Corrected the API endpoint to match the file structure.
       const response = await fetch('/api/cart/session-cart');
       if (!response.ok) {
-        console.error('Failed to get cart from server, status:', response.status);
-        Cookies.remove('cart'); // Remove invalid cookie
+        console.error(
+          'Failed to get cart from server, status:',
+          response.status
+        );
         return initialState;
-
       }
       const data = await response.json();
       if (data && typeof data === 'object' && 'items' in data) {
@@ -68,30 +65,31 @@ export default function useCartService() {
           const cookieCart = await getCartFromServerSession();
           const dbCart = (await getCart(session.user.id)) || { items: [] };
           let finalCart = dbCart;
-          // If a guest cart exists in cookies, merge it with the user's DB cart.
-          if (cookieCart.items.length > 0) {
-            const mergedItems = [...dbCart.items];
-            // Use a Set to track unique items, as it correctly handles a list of unique values.
-            const itemSet = new Set(mergedItems.map(item => `${item.product}-${item.color}-${item.size}`));
-            cookieCart.items.forEach(cookieItem => {
-              const itemKey = `${cookieItem.product}-${cookieItem.color}-${cookieItem.size}`;
-              if (!itemSet.has(itemKey)) {
-                mergedItems.push(cookieItem);
-              }
-            });
 
-            const calculatedCart = await calcDeliveryDateAndPrice({ items: mergedItems });
-            finalCart = { ...dbCart, ...calculatedCart, items: mergedItems };
-            await saveCart(session.user.id, finalCart);
-            Cookies.remove('cart'); // Clear cookie after successful merge.
+          if (cookieCart.items.length > 0) {
+            const mergedCart = await mergeCarts(
+              session.user.id,
+              cookieCart.items
+            );
+            const calculatedCart = await calcDeliveryDateAndPrice({
+              items: mergedCart.items,
+            });
+            finalCart = { ...dbCart, ...mergedCart, ...calculatedCart };
+            // Clear the cookie by calling the new API endpoint
+            await fetch('/api/cart/clear-session-cart', { method: 'POST' });
           } else if (dbCart && dbCart.items) {
-            const calculatedCart = await calcDeliveryDateAndPrice({ items: dbCart.items });
-            finalCart = { ...initialState, ...calculatedCart, items: dbCart.items };
+            const calculatedCart = await calcDeliveryDateAndPrice({
+              items: dbCart.items,
+            });
+            finalCart = {
+              ...initialState,
+              ...calculatedCart,
+              items: dbCart.items,
+            };
           }
           setCart(finalCart);
-
         } catch (error) {
-          console.error("Failed to load or merge cart:", error);
+          console.error('Failed to load or merge cart:', error);
           setCart(initialState);
         }
       } else if (status === 'unauthenticated') {
@@ -101,32 +99,34 @@ export default function useCartService() {
       setIsInitialized(true);
     };
     loadCart();
-  }, [status, session?.user?.id, isInitialized, getCartFromServerSession, setCart, setIsInitialized]);
+  }, [
+    status,
+    session?.user?.id,
+    isInitialized,
+    getCartFromServerSession,
+    setCart,
+    setIsInitialized,
+  ]);
 
-  // ✅ This function now securely updates the cart by calling the server API route.
-  const updateCart = useCallback(async (newCart: Cart) => {
-    setCart(newCart);
-    if (session?.user?.id) {
-      await saveCart(session.user.id, newCart);
-    } else {
-      // For guests, send the cart data to the server to get a signed token.
-      try {
-        // ✅ FIX: Corrected the API endpoint to match the file structure.
-        const response = await fetch('/api/cart/session-cart', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newCart),
-        });
-
-        const data = await response.json();
-        if (data.token) {
-          Cookies.set('cart', data.token, { expires: 7, path: '/' });
+  const updateCart = useCallback(
+    async (newCart: Cart) => {
+      setCart(newCart);
+      if (session?.user?.id) {
+        await saveCart(session.user.id, newCart);
+      } else {
+        try {
+          await fetch('/api/cart/session-cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newCart),
+          });
+        } catch (error) {
+          console.error('Failed to save cart to session:', error);
         }
-      } catch (error) {
-        console.error('Failed to save cart to session:', error);
       }
-    }
-  }, [session?.user?.id, setCart]);
+    },
+    [session?.user?.id, setCart]
+  );
 
   const addItem = async (item: OrderItem, quantity: number) => {
     // Client-side stock check is good for UX, but remember to re-validate on the server!
