@@ -1,7 +1,8 @@
+import { CART_JWT_SECRET } from '@/lib/constants';
 import { sign, verify } from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 
-const secret = process.env.CART_SECRET || 'secret';
+const secret = CART_JWT_SECRET;
 
 // Get the cart from the session
 export async function GET(req: NextRequest) {
@@ -10,7 +11,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ items: [] });
     }
     try {
-        const cart = await verify(token, secret);
+        const cart = await verify(token, secret!);
         return NextResponse.json(cart);
     } catch (e) {
         console.error('Invalid cart token:', e);
@@ -24,7 +25,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     try {
         const cart = await req.json();
-        const token = await sign(cart, secret, { expiresIn: '7d' });
+        const token = await sign(cart, secret!, { expiresIn: '7d' });
         const response = NextResponse.json({ token });
         response.cookies.set('cart', token, {
             httpOnly: true,
