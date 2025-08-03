@@ -18,6 +18,7 @@ import { ShippingAddress } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 
 export default function AddressesFormPage() {
   const { toast } = useToast();
@@ -31,6 +32,16 @@ export default function AddressesFormPage() {
     resolver: zodResolver(ShippingAddressSchema),
     defaultValues: shippingAddress || shippingAddressDefaultValues,
   });
+
+  // 👇 2. Get the reset function from useForm
+  const { reset, formState } = address;
+
+  // 👇 3. Add this useEffect to sync the form with loaded data
+  useEffect(() => {
+    if (shippingAddress) {
+      reset(shippingAddress);
+    }
+  }, [shippingAddress, reset]);
 
   const onChangeShippingAddress = async (values: ShippingAddress) => {
     try {
@@ -128,14 +139,10 @@ export default function AddressesFormPage() {
             <Button
               type="submit"
               size="lg"
-              disabled={
-                !address.formState.isDirty || address.formState.isSubmitting
-              }
+              disabled={!formState.isDirty || formState.isSubmitting}
               className="button col-span-2 w-full"
             >
-              {address.formState.isSubmitting
-                ? "Submitting..."
-                : "Save Changes"}
+              {formState.isSubmitting ? "Submitting..." : "Save Changes"}
             </Button>
           </CardFooter>
         </Card>
