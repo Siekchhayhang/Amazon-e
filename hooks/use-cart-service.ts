@@ -1,5 +1,6 @@
 import { getCart, saveCart, mergeCarts } from '@/lib/actions/cart.actions';
 import { calcDeliveryDateAndPrice } from '@/lib/actions/order.actions';
+import { saveEditShippingAddressToDatabase } from '@/lib/actions/user.actions';
 import { Cart, OrderItem, ShippingAddress } from '@/types';
 import { useSession } from 'next-auth/react';
 import { useEffect, useCallback } from 'react';
@@ -197,6 +198,7 @@ export default function useCartService() {
       ...(cart.shippingAddress as ShippingAddress),
       ...updatedAddress,
     };
+    await saveEditShippingAddressToDatabase(newShippingAddress);
     const calculatedCart = await calcDeliveryDateAndPrice({ items: cart.items, shippingAddress: newShippingAddress });
     await updateCart({ ...cart, ...calculatedCart, shippingAddress: newShippingAddress });
   };
