@@ -13,7 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import useCartService from "@/hooks/use-cart-service";
 import { useToast } from "@/hooks/use-toast";
-import { saveEditShippingAddressToDatabase } from "@/lib/actions/user.actions";
 import { ShippingAddressSchema } from "@/lib/validator";
 import { ShippingAddress } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,9 +36,6 @@ export default function AddressesFormPage() {
     try {
       // Update Zustand store first
       await editShippingAddress(values);
-
-      // Then sync with the database
-      await saveEditShippingAddressToDatabase(values);
 
       toast({
         title: "Address Updated",
