@@ -34,7 +34,6 @@ export default function AddressesFormPage() {
 
   const onChangeShippingAddress = async (values: ShippingAddress) => {
     try {
-      // Update Zustand store first
       await editShippingAddress(values);
 
       toast({
@@ -61,8 +60,23 @@ export default function AddressesFormPage() {
         className="space-y-4"
       >
         <Card>
-          <CardContent className="p-4 space-y-2">
+          <CardContent className="p-4 space-y-4">
             <div className="text-lg font-bold mb-2">Your address</div>
+
+            {/* ✅ 1. ADDED MISSING FULLNAME FIELD */}
+            <FormField
+              control={address.control}
+              name="fullName"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter full name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={address.control}
@@ -79,19 +93,21 @@ export default function AddressesFormPage() {
             />
 
             <div className="flex flex-col gap-5 md:flex-row">
-              {["city", "province", "country"].map((field) => (
+              {/* ✅ 2. CORRECTED THE MAPPING LOGIC */}
+              {(["city", "province", "country"] as const).map((fieldName) => (
                 <FormField
-                  key={field}
+                  key={fieldName}
                   control={address.control}
-                  name={field as keyof ShippingAddress}
+                  name={fieldName}
                   render={({ field }) => (
                     <FormItem className="w-full">
                       <FormLabel>
-                        {field.name.charAt(0).toUpperCase() +
-                          field.name.slice(1)}
+                        {/* Use the fieldName string directly */}
+                        {fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder={`Enter ${field.name}`} {...field} />
+                        {/* Use the fieldName string for the placeholder */}
+                        <Input placeholder={`Enter ${fieldName}`} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -101,20 +117,26 @@ export default function AddressesFormPage() {
             </div>
 
             <div className="flex flex-col gap-5 md:flex-row">
-              {["postalCode", "phone"].map((field) => (
+              {/* ✅ 2. CORRECTED THE MAPPING LOGIC */}
+              {(["postalCode", "phone"] as const).map((fieldName) => (
                 <FormField
-                  key={field}
+                  key={fieldName}
                   control={address.control}
-                  name={field as keyof ShippingAddress}
+                  name={fieldName}
                   render={({ field }) => (
                     <FormItem className="w-full">
                       <FormLabel>
-                        {field.name === "postalCode"
+                        {/* Use the fieldName string directly */}
+                        {fieldName === "postalCode"
                           ? "Postal Code"
                           : "Phone Number"}
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder={`Enter ${field.name}`} {...field} />
+                        {/* Use the fieldName string for the placeholder */}
+                        <Input
+                          placeholder={`Enter ${fieldName === "postalCode" ? "postal code" : "phone number"}`}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

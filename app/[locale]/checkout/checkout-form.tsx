@@ -1,4 +1,5 @@
 "use client";
+import ProductPrice from "@/components/shared/product/product-price";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
@@ -19,6 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import useCartService from "@/hooks/use-cart-service";
+import useIsMounted from "@/hooks/use-is-mounted";
+import useSettingStore from "@/hooks/use-setting-store";
 import { useToast } from "@/hooks/use-toast";
 import { createOrder } from "@/lib/actions/order.actions";
 import {
@@ -27,19 +31,14 @@ import {
   timeUntilMidnight,
 } from "@/lib/utils";
 import { ShippingAddressSchema } from "@/lib/validator";
+import { ShippingAddress } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import CheckoutFooter from "./checkout-footer";
-import { ShippingAddress } from "@/types";
-import useIsMounted from "@/hooks/use-is-mounted";
-import Link from "next/link";
-import useCartService from "@/hooks/use-cart-service";
-import useSettingStore from "@/hooks/use-setting-store";
-import ProductPrice from "@/components/shared/product/product-price";
-import { useSession } from "next-auth/react";
 
 export const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
@@ -63,7 +62,6 @@ export const shippingAddressDefaultValues =
       };
 
 const CheckoutForm = () => {
-  const { data: session } = useSession();
   const { toast } = useToast();
   const router = useRouter();
   const {
@@ -87,7 +85,6 @@ const CheckoutForm = () => {
       paymentMethod = defaultPaymentMethod,
     },
     setPaymentMethod,
-    setShippingAddress,
     updateItem,
     removeItem,
     clearCart,
@@ -103,27 +100,16 @@ const CheckoutForm = () => {
   const onSubmitShippingAddress: SubmitHandler<ShippingAddress> = async (
     values
   ) => {
-    //   try {
-    //     await editShippingAddress(values);
-    //     setIsAddressSelected(true);
-    //   } catch (error) {
-    //     console.error("Failed to save shipping address:", error);
-    //     toast({
-    //       title: "Error",
-    //       description: "Could not save your address. Please try again.",
-    //       variant: "destructive",
-    //     });
-    //   }
-    // };
-    {
-      // If the user is logged in, save the address to their profile
-      if (session?.user) {
-        await editShippingAddress(values);
-      } else {
-        // For guests, just update the cart state for this session
-        await setShippingAddress(values);
-      }
+    try {
+      await editShippingAddress(values);
       setIsAddressSelected(true);
+    } catch (error) {
+      console.error("Failed to save shipping address:", error);
+      toast({
+        title: "Error",
+        description: "Could not save your address. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -178,7 +164,6 @@ const CheckoutForm = () => {
         variant: "default",
       });
       await clearCart();
-      console.log("Cleared cart after checkout:", clearCart);
       router.push(`/checkout/${res.data?.orderId}`);
     }
   };

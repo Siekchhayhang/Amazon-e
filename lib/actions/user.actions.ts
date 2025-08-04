@@ -211,8 +211,6 @@ export async function saveEditShippingAddressToDatabase(
     // Update the user's shipping address
     user.shippingAddress = shippingAddress;
     await user.save();
-    revalidatePath('/account');
-    revalidatePath('/checkout');
     return { success: true, message: 'Shipping address saved successfully' };
   } catch (error) {
     console.error('Error saving shipping address:', error);
