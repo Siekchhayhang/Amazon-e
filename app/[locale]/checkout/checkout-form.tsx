@@ -39,6 +39,7 @@ import Link from "next/link";
 import useCartService from "@/hooks/use-cart-service";
 import useSettingStore from "@/hooks/use-setting-store";
 import ProductPrice from "@/components/shared/product/product-price";
+import { useSession } from "next-auth/react";
 
 export const shippingAddressDefaultValues =
   process.env.NODE_ENV === "development"
@@ -62,6 +63,7 @@ export const shippingAddressDefaultValues =
       };
 
 const CheckoutForm = () => {
+  const { data: session } = useSession();
   const { toast } = useToast();
   const router = useRouter();
   const {
@@ -84,12 +86,13 @@ const CheckoutForm = () => {
       deliveryDateIndex,
       paymentMethod = defaultPaymentMethod,
     },
-    setShippingAddress,
     setPaymentMethod,
+    setShippingAddress,
     updateItem,
     removeItem,
     clearCart,
     setDeliveryDateIndex,
+    editShippingAddress,
   } = useCartService();
   const isMounted = useIsMounted();
 
@@ -97,9 +100,31 @@ const CheckoutForm = () => {
     resolver: zodResolver(ShippingAddressSchema),
     defaultValues: shippingAddress || shippingAddressDefaultValues,
   });
-  const onSubmitShippingAddress: SubmitHandler<ShippingAddress> = (values) => {
-    setShippingAddress(values);
-    setIsAddressSelected(true);
+  const onSubmitShippingAddress: SubmitHandler<ShippingAddress> = async (
+    values
+  ) => {
+    //   try {
+    //     await editShippingAddress(values);
+    //     setIsAddressSelected(true);
+    //   } catch (error) {
+    //     console.error("Failed to save shipping address:", error);
+    //     toast({
+    //       title: "Error",
+    //       description: "Could not save your address. Please try again.",
+    //       variant: "destructive",
+    //     });
+    //   }
+    // };
+    {
+      // If the user is logged in, save the address to their profile
+      if (session?.user) {
+        await editShippingAddress(values);
+      } else {
+        // For guests, just update the cart state for this session
+        await setShippingAddress(values);
+      }
+      setIsAddressSelected(true);
+    }
   };
 
   useEffect(() => {
