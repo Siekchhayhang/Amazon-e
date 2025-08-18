@@ -5,21 +5,21 @@ import { i18n } from '@/i18n-config'
 
 const users: IUserInput[] = [
   {
-    name: 'John',
-    email: 'admin@example.com',
-    password: bcrypt.hashSync('123456', 5),
+    name: 'Siek Chhaihang',
+    email: 'chhayhangs@gmail.com',
+    password: bcrypt.hashSync('LOVEprogramming@@015366377', 10),
     role: 'Admin',
     address: {
-      fullName: 'John Doe',
-      street: '111 Main St',
-      city: 'New York',
-      province: 'NY',
-      postalCode: '10001',
-      country: 'USA',
-      phone: '123-456-7890',
+      fullName: 'Siek Chhaihang',
+      street: '529 St.18MC',
+      city: 'Phnom Penh',
+      province: 'PP',
+      postalCode: '12001',
+      country: 'Cambodia',
+      phone: '015-366-377',
     },
     paymentMethod: 'Stripe',
-    emailVerified: false,
+    emailVerified: true,
     isTwoFactorEnabled: false
   },
   {

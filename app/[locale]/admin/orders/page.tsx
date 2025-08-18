@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import Link from "next/link";
-
 import { auth } from "@/auth";
 import DeleteDialog from "@/components/shared/delete-dialog";
 import Pagination from "@/components/shared/pagination";
@@ -18,26 +17,33 @@ import { formatDateTime, formatId } from "@/lib/utils";
 import { IOrderList } from "@/types";
 import ProductPrice from "@/components/shared/product/product-price";
 import AccessDeniedPage from "../access-denied/page";
+import OrderIdSearch from "./order-id-search";
 
 export const metadata: Metadata = {
   title: "Admin Orders",
 };
+
 export default async function OrdersPage(props: {
-  searchParams: Promise<{ page: string }>;
+  searchParams: Promise<{ page?: string; query?: string }>;
 }) {
   const searchParams = await props.searchParams;
-
-  const { page = "1" } = searchParams;
+  const page = searchParams.page || "1";
+  const query = searchParams.query || "";
 
   const session = await auth();
   if (session?.user.role !== "Admin") return <AccessDeniedPage />;
 
   const orders = await getAllOrders({
     page: Number(page),
+    query,
   });
+
   return (
-    <div className="space-y-2">
-      <h1 className="h1-bold">Orders</h1>
+    <div className="space-y-4">
+      <div className="flex flex-wrap justify-between items-center gap-4">
+        <h1 className="h1-bold">Orders</h1>
+        <OrderIdSearch />
+      </div>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -52,37 +58,44 @@ export default async function OrdersPage(props: {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.data.map((order: IOrderList) => (
-              <TableRow key={order._id}>
-                <TableCell>{formatId(order._id)}</TableCell>
-                <TableCell>
-                  {formatDateTime(order.createdAt!).dateTime}
-                </TableCell>
-                <TableCell>
-                  {order.user ? order.user.name : "Deleted User"}
-                </TableCell>
-                <TableCell>
-                  {" "}
-                  <ProductPrice price={order.totalPrice} plain />
-                </TableCell>
-                <TableCell>
-                  {order.isPaid && order.paidAt
-                    ? formatDateTime(order.paidAt).dateTime
-                    : "No"}
-                </TableCell>
-                <TableCell>
-                  {order.isDelivered && order.deliveredAt
-                    ? formatDateTime(order.deliveredAt).dateTime
-                    : "No"}
-                </TableCell>
-                <TableCell className="flex gap-1">
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={`/admin/orders/${order._id}`}>Details</Link>
-                  </Button>
-                  <DeleteDialog id={order._id} action={deleteOrder} />
+            {orders.data.length > 0 ? (
+              orders.data.map((order: IOrderList) => (
+                <TableRow key={order._id}>
+                  <TableCell>{formatId(order._id)}</TableCell>
+                  <TableCell>
+                    {formatDateTime(order.createdAt!).dateTime}
+                  </TableCell>
+                  <TableCell>
+                    {order.user ? order.user.name : "Deleted User"}
+                  </TableCell>
+                  <TableCell>
+                    <ProductPrice price={order.totalPrice} plain />
+                  </TableCell>
+                  <TableCell>
+                    {order.isPaid && order.paidAt
+                      ? formatDateTime(order.paidAt).dateTime
+                      : "No"}
+                  </TableCell>
+                  <TableCell>
+                    {order.isDelivered && order.deliveredAt
+                      ? formatDateTime(order.deliveredAt).dateTime
+                      : "No"}
+                  </TableCell>
+                  <TableCell className="flex gap-1">
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/admin/orders/${order._id}`}>Details</Link>
+                    </Button>
+                    <DeleteDialog id={order._id} action={deleteOrder} />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center">
+                  No orders found.
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
         {orders.totalPages > 1 && (

@@ -156,26 +156,40 @@ export async function deleteOrder(id: string) {
 export async function getAllOrders({
   limit,
   page,
+  query, // <-- Add query parameter
 }: {
-  limit?: number
-  page: number
+  limit?: number;
+  page: number;
+  query?: string; // <-- Add query type
 }) {
   const {
     common: { pageSize },
-  } = await getSetting()
-  limit = limit || pageSize
-  await connectToDatabase()
-  const skipAmount = (Number(page) - 1) * limit
-  const orders = await Order.find()
+  } = await getSetting();
+  limit = limit || pageSize;
+  await connectToDatabase();
+  const skipAmount = (Number(page) - 1) * limit;
+
+  // Create a filter object. It's empty by default.
+  const filter: Record<string, unknown> = {};
+
+  // If a query is provided and it's a valid MongoDB ObjectId, add it to the filter.
+  if (query && mongoose.Types.ObjectId.isValid(query)) {
+    filter._id = query;
+  }
+
+  // Apply the filter to both the find and countDocuments calls
+  const orders = await Order.find(filter) // <-- Apply filter
     .populate('user', 'name')
     .sort({ createdAt: 'desc' })
     .skip(skipAmount)
-    .limit(limit)
-  const ordersCount = await Order.countDocuments()
+    .limit(limit);
+
+  const ordersCount = await Order.countDocuments(filter); // <-- Apply filter
+
   return {
     data: JSON.parse(JSON.stringify(orders)) as IOrderList[],
     totalPages: Math.ceil(ordersCount / limit),
-  }
+  };
 }
 export async function getMyOrders({
   limit,
