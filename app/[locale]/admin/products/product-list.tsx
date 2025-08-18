@@ -22,6 +22,7 @@ import React, { useEffect, useState, useTransition } from "react";
 import { Input } from "@/components/ui/input";
 import { formatDateTime, formatId } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import StockStatus from "@/components/shared/product/StockStatus";
 
 type ProductListDataProps = {
   products: IProduct[];
@@ -135,7 +136,9 @@ const ProductList = () => {
                   </TableCell>
                   <TableCell className="text-right">${product.price}</TableCell>
                   <TableCell>{product.category}</TableCell>
-                  <TableCell>{product.countInStock}</TableCell>
+                  <TableCell>
+                    <StockStatus countInStock={product.countInStock} />
+                  </TableCell>
                   <TableCell>{product.avgRating}</TableCell>
                   <TableCell>{product.isPublished ? "Yes" : "No"}</TableCell>
                   <TableCell>

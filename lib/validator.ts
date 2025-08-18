@@ -92,7 +92,7 @@ export const ShippingAddressSchema = z.object({
   city: z.string(),
   postalCode: z.string(),
   province: z.string(),
-  phone: z.string().min(1, 'Phone number is required'),
+  phone: z.string().min(9, 'Phone number is required').max(10).regex(/^\d+$/, 'Phone number must contain only digits'),
   country: z.string().min(1, 'Country is required'),
 })
 
@@ -192,7 +192,7 @@ export const UserInputSchema = z.object({
     province: z.string().min(1, 'Province is required'),
     postalCode: z.string().min(1, 'Postal code is required'),
     country: z.string().min(1, 'Country is required'),
-    phone: z.string().min(1, 'Phone number is required'),
+    phone: z.string().min(9, 'Phone number is required').max(10).regex(/^\d+$/, 'Phone number must contain only digits'),
   }),
   isTwoFactorEnabled: z.boolean().default(false),
   twoFactorSecret: z.string().optional(), // Optional, because users may not have 2FA enabled yet
