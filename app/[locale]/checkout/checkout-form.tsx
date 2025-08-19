@@ -451,7 +451,7 @@ const CheckoutForm = () => {
           <div className="border-y">
             {isPaymentMethodSelected && paymentMethod ? (
               <div className="grid  grid-cols-1 md:grid-cols-12  my-3 pb-3">
-                <div className="flex text-lg font-bold  col-span-5">
+                <div className="col-span-5 flex text-lg font-bold  ">
                   <span className="w-8">2 </span>
                   <span>Payment Method</span>
                 </div>
