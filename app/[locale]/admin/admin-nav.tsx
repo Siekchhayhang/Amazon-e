@@ -12,6 +12,10 @@ const links = [
     href: "/admin/overview",
   },
   {
+    title: "Approval",
+    href: "/admin/approvals",
+  },
+  {
     title: "Products",
     href: "/admin/products",
   },

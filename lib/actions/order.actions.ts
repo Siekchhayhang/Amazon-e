@@ -15,6 +15,8 @@ import { formatError, round2 } from '../utils'
 import { OrderInputSchema } from '../validator'
 import { getSetting } from './setting.actions'
 import { MONGODB_URI } from '../constants'
+import ApprovalRequest from '../db/models/approvalRequest.model'
+
 
 // CREATE
 export const createOrder = async (clientSideCart: Cart) => {
@@ -138,16 +140,43 @@ export async function deliverOrder(orderId: string) {
 // DELETE
 export async function deleteOrder(id: string) {
   try {
-    await connectToDatabase()
-    const res = await Order.findByIdAndDelete(id)
-    if (!res) throw new Error('Order not found')
-    revalidatePath('/admin/orders')
-    return {
-      success: true,
-      message: 'Order deleted successfully',
+    const session = await auth();
+    const userRole = session?.user?.role;
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      throw new Error('User not authenticated.');
     }
+
+    await connectToDatabase();
+
+    if (userRole === 'Admin') {
+      // Admins can delete orders directly.
+      const res = await Order.findByIdAndDelete(id);
+      if (!res) throw new Error('Order not found');
+
+      revalidatePath('/admin/orders');
+      return {
+        success: true,
+        message: 'Order deleted successfully',
+      };
+    }
+
+    if (userRole === 'Sale') {
+      // Sale users create a request for approval.
+      await ApprovalRequest.create({
+        requestedBy: userId,
+        type: 'DELETE_ORDER',
+        targetId: id,
+        payload: { note: 'Deletion request for order' },
+      });
+      return { success: true, message: 'Deletion request submitted for admin approval.' };
+    }
+
+    throw new Error('You do not have permission to perform this action.');
+
   } catch (error) {
-    return { success: false, message: formatError(error) }
+    return { success: false, message: formatError(error) };
   }
 }
 
@@ -472,6 +501,11 @@ export async function getOrderSummary(date: DateRange) {
     .populate('user', 'name')
     .sort({ createdAt: 'desc' })
     .limit(limit)
+
+  const pendingApprovalsCount = await ApprovalRequest.countDocuments({
+    status: 'pending',
+  });
+
   return {
     ordersCount,
     productsCount,
@@ -482,6 +516,7 @@ export async function getOrderSummary(date: DateRange) {
     topSalesCategories: JSON.parse(JSON.stringify(topSalesCategories)),
     topSalesProducts: JSON.parse(JSON.stringify(topSalesProducts)),
     latestOrders: JSON.parse(JSON.stringify(latestOrders)) as IOrderList[],
+    pendingApprovalsCount,
   }
 }
 
@@ -603,4 +638,103 @@ async function getTopSalesCategories(date: DateRange, limit = 5) {
   ])
 
   return result
+}
+
+// --- NEW updateOrderStatus ACTION ---
+export async function updateOrderStatus(orderId: string, newStatus: string) {
+  const session = await auth();
+  const userRole = session?.user?.role;
+  const userId = session?.user?.id;
+
+  if (!userId) throw new Error('User not authenticated.');
+
+  if (userRole === 'Admin') {
+    // Admins can update order status directly.
+    // NOTE: You might need to adjust your Order schema to have a 'status' field.
+    const order = await Order.findByIdAndUpdate(orderId, { status: newStatus }, { new: true });
+    if (!order) throw new Error('Order not found.');
+    return { success: true, message: 'Order status updated successfully.' };
+  }
+
+  if (userRole === 'Sale') {
+    // Sale role creates a request for approval.
+    await ApprovalRequest.create({
+      requestedBy: userId,
+      type: 'UPDATE_ORDER_STATUS',
+      targetId: orderId,
+      payload: { status: newStatus },
+    });
+    return { success: true, message: 'Order status update submitted for admin approval.' };
+  }
+
+  throw new Error('You do not have permission to perform this action.');
+}
+
+export async function markOrderAsPaid(orderId: string) {
+  try { // 2. Add try block
+    const session = await auth();
+    const userRole = session?.user?.role;
+    const userId = session?.user?.id;
+
+    if (!userId) throw new Error('User not authenticated.');
+
+    await connectToDatabase();
+
+    if (userRole === 'Admin') {
+      const order = await Order.findByIdAndUpdate(orderId, { isPaid: true, paidAt: new Date() });
+      if (!order) throw new Error('Order not found.');
+      revalidatePath('/admin/orders');
+      return { success: true, message: 'Order marked as paid.' };
+    }
+
+    if (userRole === 'Sale') {
+      await ApprovalRequest.create({
+        requestedBy: userId,
+        type: 'MARK_AS_PAID',
+        targetId: orderId,
+        payload: { isPaid: true },
+      });
+      return { success: true, message: 'Request to mark as paid has been submitted for approval.' };
+    }
+
+    throw new Error('You do not have permission to perform this action.');
+
+  } catch (error) { // 3. Add catch block
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// --- ACTION: markOrderAsDelivered ---
+export async function markOrderAsDelivered(orderId: string) {
+  try { // 2. Add try block
+    const session = await auth();
+    const userRole = session?.user?.role;
+    const userId = session?.user?.id;
+
+    if (!userId) throw new Error('User not authenticated.');
+
+    await connectToDatabase();
+
+    if (userRole === 'Admin') {
+      const order = await Order.findByIdAndUpdate(orderId, { isDelivered: true, deliveredAt: new Date() });
+      if (!order) throw new Error('Order not found.');
+      revalidatePath('/admin/orders');
+      return { success: true, message: 'Order marked as delivered.' };
+    }
+
+    if (userRole === 'Sale') {
+      await ApprovalRequest.create({
+        requestedBy: userId,
+        type: 'MARK_AS_DELIVERED',
+        targetId: orderId,
+        payload: { isDelivered: true },
+      });
+      return { success: true, message: 'Request to mark as delivered has been submitted for approval.' };
+    }
+
+    throw new Error('You do not have permission to perform this action.');
+
+  } catch (error) { // 3. Add catch block
+    return { success: false, message: formatError(error) };
+  }
 }

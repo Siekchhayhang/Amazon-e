@@ -4,55 +4,111 @@ import { connectToDatabase } from '@/lib/db'
 import Product, { IProduct } from '@/lib/db/models/product.model'
 import { IProductInput } from '@/types'
 import { revalidatePath } from 'next/cache'
-import { z } from 'zod'
 import { formatError } from '../utils'
 import { ProductInputSchema, ProductUpdateSchema } from '../validator'
 import { getSetting } from './setting.actions'
+import { auth } from '@/auth'
+import ApprovalRequest from '../db/models/approvalRequest.model'
+import { z } from 'zod'
 
-// CREATE
+// CREATE PRODUCT
 export async function createProduct(data: IProductInput) {
   try {
-    const product = ProductInputSchema.parse(data)
-    await connectToDatabase()
-    await Product.create(product)
-    revalidatePath('/admin/products')
-    return {
-      success: true,
-      message: 'Product created successfully',
+    const session = await auth();
+    const userRole = session?.user?.role;
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('User not authenticated.');
+
+    const productData = ProductInputSchema.parse(data);
+    await connectToDatabase();
+
+    if (userRole === 'Admin') {
+      await Product.create({ ...productData, isPublished: true });
+      revalidatePath('/admin/products');
+      return { success: true, message: 'Product created successfully.' };
     }
+
+    if (userRole === 'Stocker') {
+      await ApprovalRequest.create({
+        requestedBy: userId,
+        type: 'CREATE_PRODUCT',
+        payload: productData,
+      });
+      return { success: true, message: 'Product submitted for admin approval.' };
+    }
+
+    throw new Error('You do not have permission to create products.');
   } catch (error) {
-    return { success: false, message: formatError(error) }
+    return { success: false, message: formatError(error) };
   }
 }
 
-// UPDATE
+// UPDATE PRODUCT
 export async function updateProduct(data: z.infer<typeof ProductUpdateSchema>) {
   try {
-    const product = ProductUpdateSchema.parse(data)
-    await connectToDatabase()
-    await Product.findByIdAndUpdate(product._id, product)
-    revalidatePath('/admin/products')
-    return {
-      success: true,
-      message: 'Product updated successfully',
+    const session = await auth();
+    const userRole = session?.user?.role;
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('User not authenticated.');
+
+    const productData = ProductUpdateSchema.parse(data);
+    const { _id, ...updatePayload } = productData;
+    await connectToDatabase();
+
+    if (userRole === 'Admin') {
+      const updatedProduct = await Product.findByIdAndUpdate(_id, updatePayload, { new: true });
+      if (!updatedProduct) throw new Error('Product not found.');
+      revalidatePath('/admin/products');
+      revalidatePath(`/product/${updatedProduct.slug}`);
+      return { success: true, message: 'Product updated successfully.' };
     }
+
+    if (userRole === 'Stocker') {
+      await ApprovalRequest.create({
+        requestedBy: userId,
+        type: 'UPDATE_PRODUCT',
+        targetId: _id,
+        payload: updatePayload,
+      });
+      return { success: true, message: 'Product update submitted for admin approval.' };
+    }
+
+    throw new Error('You do not have permission to update products.');
   } catch (error) {
-    return { success: false, message: formatError(error) }
+    return { success: false, message: formatError(error) };
   }
 }
-// DELETE
+
+// DELETE PRODUCT
 export async function deleteProduct(id: string) {
   try {
-    await connectToDatabase()
-    const res = await Product.findByIdAndDelete(id)
-    if (!res) throw new Error('Product not found')
-    revalidatePath('/admin/products')
-    return {
-      success: true,
-      message: 'Product deleted successfully',
+    const session = await auth();
+    const userRole = session?.user?.role;
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('User not authenticated.');
+
+    await connectToDatabase();
+
+    if (userRole === 'Admin') {
+      const res = await Product.findByIdAndDelete(id);
+      if (!res) throw new Error('Product not found');
+      revalidatePath('/admin/products');
+      return { success: true, message: 'Product deleted successfully' };
     }
+
+    if (userRole === 'Stocker') {
+      await ApprovalRequest.create({
+        requestedBy: userId,
+        type: 'DELETE_PRODUCT',
+        targetId: id,
+        payload: { note: `Request to delete product ${id}` },
+      });
+      return { success: true, message: 'Deletion request submitted for admin approval.' };
+    }
+
+    throw new Error('You do not have permission to perform this action.');
   } catch (error) {
-    return { success: false, message: formatError(error) }
+    return { success: false, message: formatError(error) };
   }
 }
 // GET ONE PRODUCT BY ID

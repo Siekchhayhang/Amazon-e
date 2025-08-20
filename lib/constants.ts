@@ -30,6 +30,6 @@ export const ABA_PAYWAY_BASE_URL = process.env.ABA_PAYWAY_BASE_URL
 
 
 
-export const USER_ROLES = ['Admin', 'User']
+export const USER_ROLES = ['Admin', 'User', 'Sale', 'Stocker'];
 export const COLORS = ['Gold', 'Green', 'Red']
 export const THEMES = ['Light', 'Dark', 'System']

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -14,18 +14,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { deliverOrder, updateOrderToPaid } from "@/lib/actions/order.actions";
+//import { deliverOrder, updateOrderToPaid } from "@/lib/actions/order.actions";
 import { IOrder } from "@/lib/db/models/order.model";
 import { cn, formatDateTime } from "@/lib/utils";
 import ActionButton from "../action-button";
 import ProductPrice from "../product/product-price";
+import {
+  markOrderAsPaid,
+  markOrderAsDelivered,
+} from "@/lib/actions/order.actions";
 
 export default function OrderDetailsForm({
   order,
-  isAdmin,
+  userRole,
+  pendingRequestType,
 }: {
   order: IOrder;
-  isAdmin: boolean;
+  userRole: string;
+  pendingRequestType?: string | null;
 }) {
   const {
     shippingAddress,
@@ -41,6 +47,11 @@ export default function OrderDetailsForm({
     deliveredAt,
     expectedDeliveryDate,
   } = order;
+  const hasPermission = userRole === "Admin" || userRole === "Sale";
+
+  // 2. Check if a specific action is pending
+  const isPaidActionPending = pendingRequestType === "MARK_AS_PAID";
+  const isDeliveredActionPending = pendingRequestType === "MARK_AS_DELIVERED";
 
   return (
     <div className="grid md:grid-cols-3 md:gap-5">
@@ -165,18 +176,34 @@ export default function OrderDetailsForm({
               </Link>
             )}
 
-            {isAdmin && !isPaid && paymentMethod === "Cash On Delivery" && (
-              <ActionButton
-                caption="Mark as paid"
-                action={() => updateOrderToPaid(order._id)}
-              />
-            )}
-            {isAdmin && isPaid && !isDelivered && (
-              <ActionButton
-                caption="Mark as delivered"
-                action={() => deliverOrder(order._id)}
-              />
-            )}
+            {/* 👇 3. Update the button logic */}
+            {hasPermission &&
+              !isPaid &&
+              paymentMethod === "Cash On Delivery" &&
+              (isPaidActionPending ? (
+                <Button className="w-full" disabled>
+                  Pending Approval
+                </Button>
+              ) : (
+                <ActionButton
+                  caption="Mark as paid"
+                  action={() => markOrderAsPaid(order._id)}
+                />
+              ))}
+
+            {hasPermission &&
+              isPaid &&
+              !isDelivered &&
+              (isDeliveredActionPending ? (
+                <Button className="w-full" disabled>
+                  Pending Approval
+                </Button>
+              ) : (
+                <ActionButton
+                  caption="Mark as delivered"
+                  action={() => markOrderAsDelivered(order._id)}
+                />
+              ))}
           </CardContent>
         </Card>
       </div>

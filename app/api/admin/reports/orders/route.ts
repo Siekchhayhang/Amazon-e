@@ -14,7 +14,7 @@ export async function GET() {
 
     sheet.columns = [
         { header: 'Invoice ID', key: 'invoiceId', width: 25 },
-        { header: 'Order ID', key: 'orderId', width: 30 }, // <-- ADD THIS COLUMN
+        { header: 'Order ID', key: 'orderId', width: 30 },
         { header: 'Order Date', key: 'date', width: 15 },
         { header: 'Buyer', key: 'buyer', width: 25 },
         { header: 'Product Name', key: 'productName', width: 35 },

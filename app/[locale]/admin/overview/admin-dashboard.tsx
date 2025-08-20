@@ -1,7 +1,13 @@
 "use client";
-import { BadgeDollarSign, Barcode, CreditCard, Users } from "lucide-react";
+import {
+  BadgeDollarSign,
+  Barcode,
+  CreditCard,
+  Users,
+  ShieldCheck,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
-
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -32,7 +38,7 @@ import DashboardHeader from "./dashboard-header";
 import SalesAreaChart from "./sales-area-chart";
 import TableChart from "./table-chart";
 
-export default function OverviewReport() {
+export default function AdminDashboard() {
   const t = useTranslations("Admin");
   const [date, setDate] = useState<DateRange | undefined>({
     from: calculatePastDate(30),
@@ -138,6 +144,28 @@ export default function OverviewReport() {
               <div>
                 <Link className="text-xs" href="/admin/users">
                   {t("View customers")}
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+          {/* 👇 3. ADD THIS NEW CARD FOR PENDING APPROVALS */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Pending Approvals
+              </CardTitle>
+              <ShieldCheck className="text-blue-500" />
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="text-2xl font-bold flex items-center gap-2">
+                {data.pendingApprovalsCount}
+                {data.pendingApprovalsCount > 0 && (
+                  <Badge variant="default">New</Badge>
+                )}
+              </div>
+              <div>
+                <Link className="text-xs" href="/admin/approvals">
+                  View requests
                 </Link>
               </div>
             </CardContent>

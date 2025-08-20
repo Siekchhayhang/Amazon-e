@@ -36,7 +36,7 @@ export default function UserButton() {
     setIsDropdownOpen(false); // Close the dropdown
     setIsDialogOpen(true); // Open the dialog
   };
-
+  const adminRoles = ["admin", "sale", "stocker"];
   return (
     <React.Fragment>
       <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
@@ -74,11 +74,13 @@ export default function UserButton() {
                 <DropdownMenuItem>{t("Header.Your orders")}</DropdownMenuItem>
               </Link>
 
-              {session.user.role === "Admin" && (
-                <Link className="w-full" href="/admin/overview">
-                  <DropdownMenuItem>{t("Header.Admin")}</DropdownMenuItem>
-                </Link>
-              )}
+              {/* ✅ Convert the user's role to lowercase before checking */}
+              {session.user.role &&
+                adminRoles.includes(session.user.role.toLowerCase()) && (
+                  <Link className="w-full" href="/admin/overview">
+                    <DropdownMenuItem>{t("Header.Admin")}</DropdownMenuItem>
+                  </Link>
+                )}
             </DropdownMenuGroup>
             <DropdownMenuItem
               onSelect={(e) => e.preventDefault()}

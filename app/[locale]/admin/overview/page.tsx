@@ -1,16 +1,30 @@
 import { Metadata } from "next";
-
-import OverviewReport from "./overview-report";
 import { auth } from "@/auth";
 import AccessDeniedPage from "../access-denied/page";
+import AdminDashboard from "./admin-dashboard";
+import SaleDashboard from "./sale-dashboard";
+import StockerDashboard from "./stocker-dashboard";
+
 export const metadata: Metadata = {
-  title: "Admin Dashboard",
+  title: "Dashboard",
 };
+
 const DashboardPage = async () => {
   const session = await auth();
-  if (session?.user.role !== "Admin") return <AccessDeniedPage />;
+  const role = session?.user?.role;
 
-  return <OverviewReport />;
+  // 🏛️ This page now acts as a router based on user role
+  switch (role) {
+    case "Admin":
+      return <AdminDashboard />;
+    case "Sale":
+      return <SaleDashboard />;
+    case "Stocker":
+      return <StockerDashboard />;
+    default:
+      // If the user has no role or an unrecognized role, deny access
+      return <AccessDeniedPage />;
+  }
 };
 
 export default DashboardPage;
