@@ -82,6 +82,7 @@ export default async function OrdersPage(props: {
                   <OrderStatusActions
                     order={order}
                     pendingRequestType={pendingRequestsMap[order._id]}
+                    userRole={userRole}
                   />
 
                   <TableCell className="flex gap-1">
@@ -89,10 +90,12 @@ export default async function OrdersPage(props: {
                       <Link href={`/admin/orders/${order._id}`}>Details</Link>
                     </Button>
 
-                    {/* Logic to disable the delete button for Admins and Sales */}
+                    {/* Admin sees a normal delete button */}
                     {userRole === "Admin" && (
                       <DeleteDialog id={order._id} action={deleteOrder} />
                     )}
+
+                    {/* Sale user sees a conditional button */}
                     {userRole === "Sale" &&
                       (pendingRequestsMap[order._id] === "DELETE_ORDER" ? (
                         <Button size="sm" variant="destructive" disabled>

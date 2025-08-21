@@ -48,8 +48,6 @@ export default function OrderDetailsForm({
     expectedDeliveryDate,
   } = order;
   const hasPermission = userRole === "Admin" || userRole === "Sale";
-
-  // 2. Check if a specific action is pending
   const isPaidActionPending = pendingRequestType === "MARK_AS_PAID";
   const isDeliveredActionPending = pendingRequestType === "MARK_AS_DELIVERED";
 
@@ -179,8 +177,7 @@ export default function OrderDetailsForm({
             {/* 👇 3. Update the button logic */}
             {hasPermission &&
               !isPaid &&
-              paymentMethod === "Cash On Delivery" &&
-              (isPaidActionPending ? (
+              (isPaidActionPending && userRole !== "Admin" ? (
                 <Button className="w-full" disabled>
                   Pending Approval
                 </Button>
@@ -194,7 +191,7 @@ export default function OrderDetailsForm({
             {hasPermission &&
               isPaid &&
               !isDelivered &&
-              (isDeliveredActionPending ? (
+              (isDeliveredActionPending && userRole !== "Admin" ? (
                 <Button className="w-full" disabled>
                   Pending Approval
                 </Button>

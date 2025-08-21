@@ -87,7 +87,8 @@ export default async function ProductsPage(props: {
                   </TableCell>
                   <TableCell>{product.isPublished ? "Yes" : "No"}</TableCell>
                   <TableCell className="flex gap-1">
-                    {isPending ? (
+                    {/* 👇 This is the corrected logic */}
+                    {isPending && userRole !== "Admin" ? (
                       <Button variant="outline" size="sm" disabled>
                         Pending
                       </Button>
@@ -98,6 +99,7 @@ export default async function ProductsPage(props: {
                         </Link>
                       </Button>
                     )}
+
                     <Button asChild variant="outline" size="sm">
                       <Link target="_blank" href={`/product/${product.slug}`}>
                         View

@@ -15,11 +15,13 @@ import { TableCell } from "@/components/ui/table";
 type Props = {
   order: IOrderList;
   pendingRequestType?: string;
+  userRole: string;
 };
 
 export default function OrderStatusActions({
   order,
   pendingRequestType,
+  userRole,
 }: Props) {
   // 👇 These lines were missing
   const [isPending, startTransition] = useTransition();
@@ -49,9 +51,10 @@ export default function OrderStatusActions({
   return (
     <>
       <TableCell>
+        {/* 👇 This is the corrected logic */}
         {order.isPaid ? (
           formatDateTime(order.paidAt!).dateTime
-        ) : isPaidActionPending ? (
+        ) : isPaidActionPending && userRole !== "Admin" ? (
           <Button size="sm" disabled>
             Pending Approval
           </Button>
@@ -66,9 +69,10 @@ export default function OrderStatusActions({
         )}
       </TableCell>
       <TableCell>
+        {/* 👇 This is the corrected logic */}
         {order.isDelivered ? (
           formatDateTime(order.deliveredAt!).dateTime
-        ) : isDeliveredActionPending ? (
+        ) : isDeliveredActionPending && userRole !== "Admin" ? (
           <Button size="sm" disabled>
             Pending Approval
           </Button>
