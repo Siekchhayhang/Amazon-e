@@ -60,6 +60,10 @@ export default function DashboardHeader({
                 href: `/api/admin/reports/products?from=${date?.from?.toISOString()}&to=${date?.to?.toISOString()}`,
                 label: t("Products"),
               },
+              {
+                href: `/api/admin/reports/stock?from=${date?.from?.toISOString()}&to=${date?.to?.toISOString()}`,
+                label: t("Stocks"),
+              },
             ].map((item) => (
               <DropdownMenuItem key={item.label} asChild>
                 <Link

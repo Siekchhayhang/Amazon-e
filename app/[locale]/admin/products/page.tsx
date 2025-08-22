@@ -21,6 +21,7 @@ import {
 import { deleteProduct } from "@/lib/actions/product.actions";
 import { formatId } from "@/lib/utils";
 import ProductSearch from "./product-search";
+import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
   title: "Admin Products",
@@ -70,48 +71,72 @@ export default async function ProductsPage(props: {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {productsData.products.map((product: IProduct) => {
-              const isPending = !!pendingRequestsMap[product._id];
-              return (
-                <TableRow key={product._id}>
-                  <TableCell>{formatId(product._id)}</TableCell>
-                  <TableCell>
-                    <Link href={`/admin/products/${product._id}`}>
-                      {product.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-right">${product.price}</TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell>
-                    <StockStatus countInStock={product.countInStock} />
-                  </TableCell>
-                  <TableCell>{product.isPublished ? "Yes" : "No"}</TableCell>
-                  <TableCell className="flex gap-1">
-                    {/* 👇 This is the corrected logic */}
-                    {isPending && userRole !== "Admin" ? (
-                      <Button variant="outline" size="sm" disabled>
-                        Pending
-                      </Button>
-                    ) : (
+            {productsData.products.map(
+              (product: IProduct & { isPendingCreation?: boolean }) => {
+                // Check for pending updates on existing products
+                const isPendingUpdate = !!pendingRequestsMap[product._id];
+                // The main check: is it a pending creation OR a pending update?
+                const isPending = product.isPendingCreation || isPendingUpdate;
+
+                return (
+                  <TableRow
+                    key={product._id}
+                    className={product.isPendingCreation ? "bg-amber-50" : ""}
+                  >
+                    <TableCell>{formatId(product._id)}</TableCell>
+                    <TableCell>
+                      <Link href={`/admin/products/${product._id}`}>
+                        {product.name}
+                        {product.isPendingCreation && (
+                          <Badge variant="outline" className="ml-2">
+                            Pending
+                          </Badge>
+                        )}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      ${product.price}
+                    </TableCell>
+                    <TableCell>{product.category}</TableCell>
+                    <TableCell>
+                      <StockStatus countInStock={product.countInStock} />
+                    </TableCell>
+                    <TableCell>
+                      {/* Update the 'Published' column */}
+                      {product.isPendingCreation ? (
+                        <Badge variant="secondary">Pending Approval</Badge>
+                      ) : product.isPublished ? (
+                        "Yes"
+                      ) : (
+                        "No"
+                      )}
+                    </TableCell>
+                    <TableCell className="flex gap-1">
+                      {/* Update the 'Actions' column */}
+                      {isPending && userRole !== "Admin" ? (
+                        <Button variant="outline" size="sm" disabled>
+                          Pending
+                        </Button>
+                      ) : (
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/admin/products/${product._id}`}>
+                            Edit
+                          </Link>
+                        </Button>
+                      )}
                       <Button asChild variant="outline" size="sm">
-                        <Link href={`/admin/products/${product._id}`}>
-                          Edit
+                        <Link target="_blank" href={`/product/${product.slug}`}>
+                          View
                         </Link>
                       </Button>
-                    )}
-
-                    <Button asChild variant="outline" size="sm">
-                      <Link target="_blank" href={`/product/${product.slug}`}>
-                        View
-                      </Link>
-                    </Button>
-                    {userRole === "Admin" && (
-                      <DeleteDialog id={product._id} action={deleteProduct} />
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                      {userRole === "Admin" && (
+                        <DeleteDialog id={product._id} action={deleteProduct} />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              }
+            )}
           </TableBody>
         </Table>
         {productsData.totalPages > 1 && (

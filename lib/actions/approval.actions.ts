@@ -66,6 +66,10 @@ export async function processRequest(requestId: string, action: 'approve' | 'rej
             let updatedProductSlug = null;
             switch (request.type) {
                 case 'CREATE_PRODUCT':
+                    const existingProduct = await Product.findOne({ slug: request.payload.slug });
+                    if (existingProduct) {
+                        throw new Error(`A product with the slug "${request.payload.slug}" already exists.`);
+                    }
                     await Product.create({ ...request.payload, isPublished: true });
                     break;
                 case 'UPDATE_PRODUCT':

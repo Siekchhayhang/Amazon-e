@@ -18,7 +18,10 @@ export default function ApprovalActions({ requestId }: { requestId: string }) {
         toast({ description: res.message });
         router.refresh(); // Refresh the page to update the list
       } else {
-        toast({ variant: "destructive", description: "An error occurred." });
+        toast({
+          variant: "destructive",
+          description: res.message || "An error occurred.",
+        });
       }
     });
   };

@@ -8,7 +8,7 @@ import { formatError } from '../utils'
 import { ProductInputSchema, ProductUpdateSchema } from '../validator'
 import { getSetting } from './setting.actions'
 import { auth } from '@/auth'
-import ApprovalRequest from '../db/models/approvalRequest.model'
+import ApprovalRequest, { IApprovalRequest } from '../db/models/approvalRequest.model'
 import StockMovement from '@/lib/db/models/stockMovement.model';
 import { z } from 'zod'
 
@@ -160,6 +160,65 @@ export async function getProductById(productId: string) {
 }
 
 // GET ALL PRODUCTS FOR ADMIN
+// export async function getAllProductsForAdmin({
+//   query,
+//   page = 1,
+//   sort = 'latest',
+//   limit,
+// }: {
+//   query: string
+//   page?: number
+//   sort?: string
+//   limit?: number
+// }) {
+//   await connectToDatabase()
+
+//   const {
+//     common: { pageSize },
+//   } = await getSetting()
+//   limit = limit || pageSize
+//   const queryFilter =
+//     query && query !== 'all'
+//       ? {
+//         name: {
+//           $regex: query,
+//           $options: 'i',
+//         },
+//       }
+//       : {}
+
+//   const order: Record<string, 1 | -1> =
+//     sort === 'best-selling'
+//       ? { numSales: -1 }
+//       : sort === 'price-low-to-high'
+//         ? { price: 1 }
+//         : sort === 'price-high-to-low'
+//           ? { price: -1 }
+//           : sort === 'avg-customer-review'
+//             ? { avgRating: -1 }
+//             : { _id: -1 }
+//   const products = await Product.find({
+//     ...queryFilter,
+//   })
+//     .sort(order)
+//     .skip(limit * (Number(page) - 1))
+//     .limit(limit)
+//     .lean()
+
+//   const countProducts = await Product.countDocuments({
+//     ...queryFilter,
+//   })
+//   return {
+//     products: JSON.parse(JSON.stringify(products)) as IProduct[],
+//     totalPages: Math.ceil(countProducts / pageSize),
+//     totalProducts: countProducts,
+//     from: pageSize * (Number(page) - 1) + 1,
+//     to: pageSize * (Number(page) - 1) + products.length,
+//   }
+// }
+// ... other imports
+
+// GET ALL PRODUCTS FOR ADMIN
 export async function getAllProductsForAdmin({
   query,
   page = 1,
@@ -177,16 +236,11 @@ export async function getAllProductsForAdmin({
     common: { pageSize },
   } = await getSetting()
   limit = limit || pageSize
-  const queryFilter =
-    query && query !== 'all'
-      ? {
-        name: {
-          $regex: query,
-          $options: 'i',
-        },
-      }
-      : {}
+  const skipAmount = (Number(page) - 1) * limit;
 
+  const queryFilter = query ? { name: { $regex: query, $options: 'i' } } : {}
+
+  // 2. Re-implement the sorting logic
   const order: Record<string, 1 | -1> =
     sort === 'best-selling'
       ? { numSales: -1 }
@@ -196,24 +250,46 @@ export async function getAllProductsForAdmin({
           ? { price: -1 }
           : sort === 'avg-customer-review'
             ? { avgRating: -1 }
-            : { _id: -1 }
-  const products = await Product.find({
-    ...queryFilter,
-  })
-    .sort(order)
-    .skip(limit * (Number(page) - 1))
-    .limit(limit)
-    .lean()
+            : { createdAt: -1 }; // Changed from _id to createdAt for consistency
 
-  const countProducts = await Product.countDocuments({
-    ...queryFilter,
-  })
+  const pendingCreations = await ApprovalRequest.find({
+    type: 'CREATE_PRODUCT',
+    status: 'pending',
+    ...(query && { "payload.name": { $regex: query, $options: 'i' } })
+  }).sort({ createdAt: -1 });
+
+  // 3. Apply the correct type to 'req'
+  const pendingProducts = pendingCreations.map((req: IApprovalRequest) => ({
+    ...req.payload as IProductInput, // Cast payload to ensure type safety
+    _id: req._id,
+    isPendingCreation: true,
+    isPublished: false,
+    createdAt: req.createdAt,
+    updatedAt: req.updatedAt,
+    avgRating: 0,
+    price: req.payload.price || 0,
+    category: req.payload.category || 'N/A',
+    countInStock: req.payload.countInStock || 0,
+    slug: req.payload.slug,
+  }));
+
+  const products = await Product.find(queryFilter)
+    .sort(order) // 4. Apply the sort order to the query
+    .skip(skipAmount)
+    .limit(limit)
+    .lean();
+
+  const allProducts = [...pendingProducts, ...products];
+
+  const countProducts = await Product.countDocuments(queryFilter);
+  const totalProducts = countProducts + pendingProducts.length;
+
   return {
-    products: JSON.parse(JSON.stringify(products)) as IProduct[],
-    totalPages: Math.ceil(countProducts / pageSize),
-    totalProducts: countProducts,
-    from: pageSize * (Number(page) - 1) + 1,
-    to: pageSize * (Number(page) - 1) + products.length,
+    products: JSON.parse(JSON.stringify(allProducts)) as IProduct[],
+    totalPages: Math.ceil(totalProducts / limit),
+    totalProducts: totalProducts,
+    from: skipAmount + 1,
+    to: skipAmount + allProducts.length,
   }
 }
 
@@ -419,4 +495,40 @@ export async function getAllTags() {
           .join(' ')
       ) as string[]) || []
   )
+}
+
+// --- NEW ACTION: Get a product or the data from a pending creation request ---
+export async function getProductOrPendingData(id: string) {
+  await connectToDatabase();
+
+  // First, try to find a real product
+  const product = await Product.findById(id);
+  if (product) {
+    return {
+      data: JSON.parse(JSON.stringify(product)),
+      isReviewMode: false
+    };
+  }
+
+  // If not found, try to find a pending creation request
+  const request = await ApprovalRequest.findOne({
+    _id: id,
+    type: 'CREATE_PRODUCT',
+    status: 'pending',
+  });
+
+  if (request) {
+    // Format the payload to look like a product for the form
+    const pendingProductData = {
+      ...request.payload as IProductInput,
+      _id: request._id.toString(),
+    };
+    return {
+      data: JSON.parse(JSON.stringify(pendingProductData)),
+      isReviewMode: true, // Add a flag to tell the form this is a review
+      requestId: request._id.toString(),
+    };
+  }
+
+  return null; // If neither is found
 }

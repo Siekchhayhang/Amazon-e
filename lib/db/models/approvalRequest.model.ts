@@ -1,6 +1,7 @@
 import { Document, model, models, Schema } from 'mongoose';
 
 export interface IApprovalRequest extends Document {
+    _id: string;
     requestedBy: Schema.Types.ObjectId;
     reviewedBy?: Schema.Types.ObjectId;
     type: 'CREATE_PRODUCT' | 'UPDATE_PRODUCT' | 'UPDATE_PRODUCT_STOCK' | 'UPDATE_ORDER_STATUS' | 'MARK_AS_PAID' | 'MARK_AS_DELIVERED' | 'DELETE_ORDER' | 'DELETE_PRODUCT';

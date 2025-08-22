@@ -32,3 +32,19 @@ export async function getStockMovements({ page = 1 }: { page?: number }) {
         return { data: [], totalPages: 0 };
     }
 }
+
+// --- NEW ACTION: Get ALL stock movements for a report ---
+export async function getAllStockMovements() {
+    try {
+        await connectToDatabase();
+        const movements = await StockMovement.find({})
+            .populate('product', 'name')
+            .populate('initiatedBy', 'name')
+            .sort({ createdAt: -1 });
+
+        return { data: JSON.parse(JSON.stringify(movements)) };
+    } catch (error) {
+        console.error("Failed to fetch all stock movements:", error);
+        return { data: [] };
+    }
+}
