@@ -9,6 +9,7 @@ import { ProductInputSchema, ProductUpdateSchema } from '../validator'
 import { getSetting } from './setting.actions'
 import { auth } from '@/auth'
 import ApprovalRequest from '../db/models/approvalRequest.model'
+import StockMovement from '@/lib/db/models/stockMovement.model';
 import { z } from 'zod'
 
 // CREATE PRODUCT
@@ -55,9 +56,27 @@ export async function updateProduct(data: z.infer<typeof ProductUpdateSchema>) {
     const { _id, ...updatePayload } = productData;
     await connectToDatabase();
 
+    // 1. Get the product's state *before* the update
+    const originalProduct = await Product.findById(_id);
+    if (!originalProduct) throw new Error('Original product not found.');
+
     if (userRole === 'Admin') {
       const updatedProduct = await Product.findByIdAndUpdate(_id, updatePayload, { new: true });
       if (!updatedProduct) throw new Error('Product not found.');
+
+      // 2. Compare old stock to new stock
+      if (originalProduct.countInStock !== updatedProduct.countInStock) {
+        const quantityChange = updatedProduct.countInStock - originalProduct.countInStock;
+        // 3. Create a log entry for the manual adjustment
+        await StockMovement.create({
+          product: _id,
+          type: 'ADJUSTMENT',
+          quantityChange: quantityChange,
+          reason: 'Manual edit by admin',
+          initiatedBy: userId,
+        });
+      }
+      // 4. Revalidate paths
       revalidatePath('/admin/products');
       revalidatePath(`/product/${updatedProduct.slug}`);
       return { success: true, message: 'Product updated successfully.' };

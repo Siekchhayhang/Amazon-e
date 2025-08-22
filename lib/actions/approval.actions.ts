@@ -69,9 +69,28 @@ export async function processRequest(requestId: string, action: 'approve' | 'rej
                     await Product.create({ ...request.payload, isPublished: true });
                     break;
                 case 'UPDATE_PRODUCT':
+                    // 1. Get the product's state *before* the update
+                    const originalProduct = await Product.findById(request.targetId);
+                    if (!originalProduct) throw new Error('Original product for update not found.');
+
+                    // 2. Perform the update
                     const updatedProduct = await Product.findByIdAndUpdate(request.targetId, request.payload, { new: true });
                     if (updatedProduct) {
                         updatedProductSlug = updatedProduct.slug;
+
+                        // 3. Compare old stock to new stock from the payload
+                        const newStock = request.payload.countInStock;
+                        if (newStock !== undefined && originalProduct.countInStock !== newStock) {
+                            const quantityChange = newStock - originalProduct.countInStock;
+                            // 4. Create a log entry for the approved adjustment
+                            await StockMovement.create({
+                                product: request.targetId,
+                                type: 'ADJUSTMENT',
+                                quantityChange: quantityChange,
+                                reason: 'Stocker update approved by admin',
+                                initiatedBy: request.requestedBy,
+                            });
+                        }
                     }
                     break;
                 case 'UPDATE_PRODUCT_STOCK':
@@ -154,4 +173,15 @@ export async function getPendingRequestTypeForProduct(productId: string) {
     }).select('type');
 
     return request ? request.type : null;
+}
+
+// --- NEW ACTION: Check for a duplicate pending creation request ---
+export async function isDuplicateCreateRequestPending(slug: string) {
+    await connectToDatabase();
+    const request = await ApprovalRequest.findOne({
+        "payload.slug": slug, // Check the slug inside the payload
+        type: 'CREATE_PRODUCT',
+        status: 'pending',
+    });
+    return !!request; // Returns true if a duplicate is pending
 }

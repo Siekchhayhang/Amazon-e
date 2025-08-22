@@ -25,6 +25,8 @@ import { ProductInputSchema, ProductUpdateSchema } from "@/lib/validator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toSlug } from "@/lib/utils";
 import { IProductInput } from "@/types";
+import { isDuplicateCreateRequestPending } from "@/lib/actions/approval.actions";
+import { useSession } from "next-auth/react";
 
 const productDefaultValues: IProductInput =
   process.env.NODE_ENV === "development"
@@ -80,7 +82,7 @@ const ProductForm = ({
   pendingRequestType?: string;
 }) => {
   const router = useRouter();
-
+  const { data: session } = useSession();
   const form = useForm<IProductInput>({
     resolver:
       type === "Update"
@@ -93,6 +95,17 @@ const ProductForm = ({
   const { toast } = useToast();
   async function onSubmit(values: IProductInput) {
     if (type === "Create") {
+      if (session?.user?.role === "Stocker") {
+        const isDuplicate = await isDuplicateCreateRequestPending(values.slug);
+        if (isDuplicate) {
+          toast({
+            variant: "destructive",
+            description:
+              "A product with this name/slug is already pending approval.",
+          });
+          return; // Stop the submission
+        }
+      }
       const res = await createProduct(values);
       if (!res.success) {
         toast({
