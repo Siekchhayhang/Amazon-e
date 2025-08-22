@@ -4,6 +4,9 @@ import Order from '@/lib/db/models/order.model';
 import ApprovalRequest from '../db/models/approvalRequest.model';
 import { revalidatePath } from 'next/cache';
 import { connectToDatabase } from '../db';
+import StockMovement from '../db/models/stockMovement.model';
+import { auth } from '@/auth';
+import { formatError } from '../utils';
 
 export async function getPendingRequests() {
     const requests = await ApprovalRequest.find({ status: 'pending' }).populate('requestedBy', 'name').sort({ createdAt: -1 });
@@ -47,53 +50,87 @@ export async function getPendingProductRequestsMap() {
 
 
 export async function processRequest(requestId: string, action: 'approve' | 'reject') {
-    const request = await ApprovalRequest.findById(requestId);
-    if (!request) throw new Error('Request not found.');
+    // 👇 Wrap the entire function in a try...catch block
+    try {
+        const session = await auth();
+        if (session?.user?.role !== 'Admin' || !session?.user?.id) {
+            throw new Error('Not authorized or not logged in.');
+        }
+        const adminId = session.user.id;
 
-    if (action === 'approve') {
-        let updatedProductSlug = null; // Variable to hold slug for revalidation
-        switch (request.type) {
-            case 'CREATE_PRODUCT':
-                await Product.create({ ...request.payload, isPublished: true });
-                break;
-            case 'UPDATE_PRODUCT':
-                const updatedProduct = await Product.findByIdAndUpdate(request.targetId, request.payload, { new: true });
-                if (updatedProduct) {
-                    updatedProductSlug = updatedProduct.slug;
-                }
-                break;
-            case 'UPDATE_PRODUCT_STOCK':
-                await Product.findByIdAndUpdate(request.targetId, { countInStock: request.payload.countInStock });
-                break;
-            case 'UPDATE_ORDER_STATUS':
-                await Order.findByIdAndUpdate(request.targetId, { status: request.payload.status });
-                break;
-            case 'MARK_AS_PAID':
-                await Order.findByIdAndUpdate(request.targetId, { isPaid: true, paidAt: new Date() });
-                break;
-            case 'MARK_AS_DELIVERED':
-                await Order.findByIdAndUpdate(request.targetId, { isDelivered: true, deliveredAt: new Date() });
-                break;
-            case 'DELETE_ORDER':
-                await Order.findByIdAndDelete(request.targetId);
-                break;
-            case 'DELETE_PRODUCT':
-                await Product.findByIdAndDelete(request.targetId);
-                break;
+        await connectToDatabase();
+        const request = await ApprovalRequest.findById(requestId);
+        if (!request) throw new Error('Request not found.');
+
+        if (action === 'approve') {
+            let updatedProductSlug = null;
+            switch (request.type) {
+                case 'CREATE_PRODUCT':
+                    await Product.create({ ...request.payload, isPublished: true });
+                    break;
+                case 'UPDATE_PRODUCT':
+                    const updatedProduct = await Product.findByIdAndUpdate(request.targetId, request.payload, { new: true });
+                    if (updatedProduct) {
+                        updatedProductSlug = updatedProduct.slug;
+                    }
+                    break;
+                case 'UPDATE_PRODUCT_STOCK':
+                    await Product.findByIdAndUpdate(request.targetId, { countInStock: request.payload.countInStock });
+                    break;
+                case 'MARK_AS_PAID':
+                    await Order.findByIdAndUpdate(request.targetId, { isPaid: true, paidAt: new Date() });
+                    break;
+                case 'MARK_AS_DELIVERED':
+                    const order = await Order.findByIdAndUpdate(request.targetId, { isDelivered: true, deliveredAt: new Date() });
+                    if (order) {
+                        for (const item of order.items) {
+                            await Product.findByIdAndUpdate(item.product, { $inc: { countInStock: -item.quantity } });
+                            await StockMovement.create({
+                                product: item.product,
+                                type: 'SALE',
+                                quantityChange: -item.quantity,
+                                orderId: order._id,
+                                initiatedBy: adminId,
+                            });
+                        }
+                    }
+                    break;
+                case 'DELETE_ORDER':
+                    await Order.findByIdAndDelete(request.targetId);
+                    break;
+                case 'DELETE_PRODUCT':
+                    await Product.findByIdAndDelete(request.targetId);
+                    break;
+                case 'REQUEST_RESTOCK':
+                    const { quantity, reason } = request.payload;
+                    await Product.findByIdAndUpdate(request.targetId, { $inc: { countInStock: quantity } });
+                    await StockMovement.create({
+                        product: request.targetId,
+                        type: 'RESTOCK',
+                        quantityChange: quantity,
+                        reason,
+                        initiatedBy: request.requestedBy,
+                    });
+                    break;
+            }
+            request.status = 'approved';
+            if (updatedProductSlug) {
+                revalidatePath(`/product/${updatedProductSlug}`);
+            }
+        } else {
+            request.status = 'rejected';
         }
-        request.status = 'approved';
-        if (updatedProductSlug) {
-            revalidatePath(`/product/${updatedProductSlug}`);
-        }
-    } else {
-        request.status = 'rejected';
+
+        await request.save();
+        revalidatePath('/admin/approvals');
+        revalidatePath('/admin/orders');
+        revalidatePath('/admin/products');
+        return { success: true, message: `Request has been ${action}d.` };
+
+    } catch (error) {
+        // This will catch any error and return a clean response
+        return { success: false, message: formatError(error) };
     }
-
-    await request.save();
-    revalidatePath('/admin/approvals');
-    revalidatePath('/admin/orders');
-    revalidatePath('/admin/products');
-    return { success: true, message: `Request has been ${action}d.` };
 }
 
 export async function getPendingRequestTypeForOrder(orderId: string) {

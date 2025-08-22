@@ -111,6 +111,28 @@ export async function deleteProduct(id: string) {
     return { success: false, message: formatError(error) };
   }
 }
+
+// Request Restock
+
+export async function requestRestock({ productId, quantity, reason }: { productId: string, quantity: number, reason: string }) {
+  try {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('User not authenticated.');
+
+    await ApprovalRequest.create({
+      requestedBy: userId,
+      type: 'REQUEST_RESTOCK',
+      targetId: productId,
+      payload: { quantity, reason },
+    });
+
+    return { success: true, message: 'Restock request submitted for admin approval.' };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
 // GET ONE PRODUCT BY ID
 export async function getProductById(productId: string) {
   await connectToDatabase()

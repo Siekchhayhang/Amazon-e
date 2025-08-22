@@ -20,6 +20,10 @@ const links = [
     href: "/admin/products",
   },
   {
+    title: "Stock Report",
+    href: "/admin/reports/stock",
+  },
+  {
     title: "Orders",
     href: "/admin/orders",
   },

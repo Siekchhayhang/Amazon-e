@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function DeleteDialog({
   id,
@@ -26,6 +27,7 @@ export default function DeleteDialog({
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const router = useRouter();
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
@@ -60,6 +62,7 @@ export default function DeleteDialog({
                   toast({
                     description: res.message,
                   });
+                  router.refresh();
                   if (callbackAction) callbackAction();
                 }
               })
