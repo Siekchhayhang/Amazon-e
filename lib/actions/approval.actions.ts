@@ -7,6 +7,7 @@ import { connectToDatabase } from '../db';
 import StockMovement from '../db/models/stockMovement.model';
 import { auth } from '@/auth';
 import { formatError } from '../utils';
+import { processOrderPayment } from './order.actions';
 
 export async function getPendingRequests() {
     const requests = await ApprovalRequest.find({ status: 'pending' }).populate('requestedBy', 'name').sort({ createdAt: -1 });
@@ -101,22 +102,14 @@ export async function processRequest(requestId: string, action: 'approve' | 'rej
                     await Product.findByIdAndUpdate(request.targetId, { countInStock: request.payload.countInStock });
                     break;
                 case 'MARK_AS_PAID':
+                    // Update the order status
                     await Order.findByIdAndUpdate(request.targetId, { isPaid: true, paidAt: new Date() });
+                    // 👇 Call the same helper function
+                    await processOrderPayment(request.targetId as string, adminId);
                     break;
                 case 'MARK_AS_DELIVERED':
-                    const order = await Order.findByIdAndUpdate(request.targetId, { isDelivered: true, deliveredAt: new Date() });
-                    if (order) {
-                        for (const item of order.items) {
-                            await Product.findByIdAndUpdate(item.product, { $inc: { countInStock: -item.quantity } });
-                            await StockMovement.create({
-                                product: item.product,
-                                type: 'SALE',
-                                quantityChange: -item.quantity,
-                                orderId: order._id,
-                                initiatedBy: adminId,
-                            });
-                        }
-                    }
+
+                    await Order.findByIdAndUpdate(request.targetId, { isDelivered: true, deliveredAt: new Date() });
                     break;
                 case 'DELETE_ORDER':
                     await Order.findByIdAndDelete(request.targetId);
@@ -130,7 +123,7 @@ export async function processRequest(requestId: string, action: 'approve' | 'rej
                     await StockMovement.create({
                         product: request.targetId,
                         type: 'RESTOCK',
-                        quantityChange: quantity,
+                        stockIn: quantity, // Use stockIn
                         reason,
                         initiatedBy: request.requestedBy,
                     });
@@ -166,8 +159,6 @@ export async function getPendingRequestTypeForOrder(orderId: string) {
     return request ? request.type : null;
 }
 
-
-// 👇 ADD THIS ENTIRE FUNCTION
 export async function getPendingRequestTypeForProduct(productId: string) {
     await connectToDatabase();
     const request = await ApprovalRequest.findOne({

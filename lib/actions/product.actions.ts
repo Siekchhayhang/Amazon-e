@@ -67,11 +67,12 @@ export async function updateProduct(data: z.infer<typeof ProductUpdateSchema>) {
       // 2. Compare old stock to new stock
       if (originalProduct.countInStock !== updatedProduct.countInStock) {
         const quantityChange = updatedProduct.countInStock - originalProduct.countInStock;
-        // 3. Create a log entry for the manual adjustment
+        // 3. Create a log entry using the new schema
         await StockMovement.create({
           product: _id,
           type: 'ADJUSTMENT',
-          quantityChange: quantityChange,
+          stockIn: quantityChange > 0 ? quantityChange : 0, // Use stockIn for positive changes
+          stockOut: quantityChange < 0 ? -quantityChange : 0, // Use stockOut for negative changes
           reason: 'Manual edit by admin',
           initiatedBy: userId,
         });

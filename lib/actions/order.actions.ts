@@ -16,6 +16,7 @@ import { OrderInputSchema } from '../validator'
 import { getSetting } from './setting.actions'
 import { MONGODB_URI } from '../constants'
 import ApprovalRequest from '../db/models/approvalRequest.model'
+import StockMovement from '../db/models/stockMovement.model'
 
 
 // CREATE
@@ -417,7 +418,6 @@ export const calcDeliveryDateAndPrice = async ({
   };
 };
 
-// ... (The rest of your file for getOrderSummary etc. remains the same)
 
 export async function getOrderSummary(date: DateRange) {
   await connectToDatabase()
@@ -670,12 +670,12 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
   throw new Error('You do not have permission to perform this action.');
 }
 
+// --- ACTION: markOrderAsPaid ---
 export async function markOrderAsPaid(orderId: string) {
-  try { // 2. Add try block
+  try {
     const session = await auth();
     const userRole = session?.user?.role;
     const userId = session?.user?.id;
-
     if (!userId) throw new Error('User not authenticated.');
 
     await connectToDatabase();
@@ -683,11 +683,16 @@ export async function markOrderAsPaid(orderId: string) {
     if (userRole === 'Admin') {
       const order = await Order.findByIdAndUpdate(orderId, { isPaid: true, paidAt: new Date() });
       if (!order) throw new Error('Order not found.');
+
+      // 👇 Call the helper function to process stock and logging
+      await processOrderPayment(orderId, userId);
+
       revalidatePath('/admin/orders');
       return { success: true, message: 'Order marked as paid.' };
     }
 
     if (userRole === 'Sale') {
+      // This part remains the same
       await ApprovalRequest.create({
         requestedBy: userId,
         type: 'MARK_AS_PAID',
@@ -698,8 +703,7 @@ export async function markOrderAsPaid(orderId: string) {
     }
 
     throw new Error('You do not have permission to perform this action.');
-
-  } catch (error) { // 3. Add catch block
+  } catch (error) {
     return { success: false, message: formatError(error) };
   }
 }
@@ -738,3 +742,21 @@ export async function markOrderAsDelivered(orderId: string) {
     return { success: false, message: formatError(error) };
   }
 }
+
+// 👇 CREATE THIS NEW, REUSABLE FUNCTION
+export async function processOrderPayment(orderId: string, adminId: string) {
+  const order = await Order.findById(orderId);
+  if (order) {
+    for (const item of order.items) {
+      await Product.findByIdAndUpdate(item.product, { $inc: { countInStock: -item.quantity } });
+      await StockMovement.create({
+        product: item.product,
+        type: 'SALE',
+        stockOut: item.quantity,
+        orderId: order._id,
+        initiatedBy: adminId,
+      });
+    }
+  }
+}
+

@@ -1,15 +1,16 @@
-import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import ExcelJS from 'exceljs';
 import { getAllStockMovements } from '@/lib/actions/stock.actions';
-import { formatDateTime, formatId } from '@/lib/utils';
+import { formatDateTime } from '@/lib/utils';
+import ExcelJS from 'exceljs';
+import { NextResponse } from 'next/server';
 
 // 1. Define a type for the data you're working with
 type MovementItem = {
     createdAt: string;
     product: { name: string; };
     type: string;
-    quantityChange: number;
+    stockIn?: number;
+    stockOut?: number;
     orderId?: string;
     reason?: string;
     initiatedBy: { name: string; };
@@ -36,7 +37,8 @@ export async function GET() {
             { header: 'Date', key: 'date', width: 25 },
             { header: 'Product', key: 'product', width: 40 },
             { header: 'Type', key: 'type', width: 15 },
-            { header: 'Quantity Change', key: 'quantity', width: 20 },
+            { header: 'Stock In', key: 'stockIn', width: 15 },
+            { header: 'Stock Out', key: 'stockOut', width: 15 },
             { header: 'Reason / Order ID', key: 'reason', width: 35 },
             { header: 'Initiated By', key: 'user', width: 25 },
         ];
@@ -51,9 +53,10 @@ export async function GET() {
                 date: formatDateTime(new Date(item.createdAt)).dateTime,
                 product: item.product.name,
                 type: item.type,
-                quantity: item.quantityChange,
+                stockIn: item.stockIn || 0,
+                stockOut: item.stockOut || 0,
                 reason: item.type === 'SALE' && item.orderId
-                    ? `Order: ${formatId(item.orderId)}`
+                    ? `Order: ${item.orderId}`
                     : item.reason || 'N/A',
                 user: item.initiatedBy.name,
             });

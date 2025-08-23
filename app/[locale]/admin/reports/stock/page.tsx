@@ -1,8 +1,6 @@
-import { Metadata } from "next";
-import Link from "next/link";
 import { auth } from "@/auth";
-import AccessDeniedPage from "../../access-denied/page";
-import { getStockMovements } from "@/lib/actions/stock.actions";
+import Pagination from "@/components/shared/pagination";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -11,10 +9,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDateTime, formatId } from "@/lib/utils";
-import Pagination from "@/components/shared/pagination";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { getStockMovements } from "@/lib/actions/stock.actions";
+import { formatDateTime } from "@/lib/utils";
+import { Metadata } from "next";
+import Link from "next/link";
+import AccessDeniedPage from "../../access-denied/page";
 
 export const metadata: Metadata = {
   title: "Stock Movement Report",
@@ -28,7 +27,8 @@ type StockMovementItem = {
     slug: string;
   };
   type: "RESTOCK" | "SALE" | "ADJUSTMENT";
-  quantityChange: number;
+  stockIn?: number;
+  stockOut?: number;
   orderId?: string;
   reason?: string;
   initiatedBy: {
@@ -63,7 +63,8 @@ export default async function StockReportPage(props: {
               <TableHead>Date</TableHead>
               <TableHead>Product</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead className="text-center">Quantity Change</TableHead>
+              <TableHead className="text-center">Stock In</TableHead>
+              <TableHead className="text-center">Stock Out</TableHead>
               <TableHead>Reason / Order ID</TableHead>
               <TableHead>Initiated By</TableHead>
             </TableRow>
@@ -71,7 +72,8 @@ export default async function StockReportPage(props: {
           <TableBody>
             {result.data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">
+                {/* This colSpan should now be 7 because we have 7 columns */}
+                <TableCell colSpan={7} className="text-center">
                   No stock movements found.
                 </TableCell>
               </TableRow>
@@ -103,25 +105,22 @@ export default async function StockReportPage(props: {
                       {item.type}
                     </Badge>
                   </TableCell>
-                  <TableCell
-                    className={cn(
-                      "text-center font-bold",
-                      item.quantityChange > 0
-                        ? "text-green-600"
-                        : "text-red-600"
-                    )}
-                  >
-                    {item.quantityChange > 0
-                      ? `+${item.quantityChange}`
-                      : item.quantityChange}
+
+                  {/* 👇 This is the corrected section with two columns */}
+                  <TableCell className="text-center font-bold text-green-600">
+                    {item.stockIn ? `+${item.stockIn}` : ""}
                   </TableCell>
+                  <TableCell className="text-center font-bold text-red-600">
+                    {item.stockOut ? `-${item.stockOut}` : ""}
+                  </TableCell>
+
                   <TableCell>
                     {item.type === "SALE" && item.orderId ? (
                       <Link
                         href={`/admin/orders/${item.orderId}`}
                         className="hover:underline"
                       >
-                        Order: {formatId(item.orderId)}
+                        Order: {item.orderId}
                       </Link>
                     ) : (
                       item.reason || "N/A"
