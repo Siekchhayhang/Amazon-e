@@ -62,22 +62,33 @@ export async function GET() {
             });
         });
 
+        // Style the data rows
         sheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-            if (rowNumber > 1) {
+            if (rowNumber > 1) { // Skip header row
                 row.eachCell({ includeEmpty: true }, (cell) => {
                     cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
                 });
 
+                // Get cells by their correct keys
                 const typeCell = row.getCell('type');
-                const quantityCell = row.getCell('quantity');
-                typeCell.alignment = { vertical: 'middle', horizontal: 'center' };
-                quantityCell.alignment = { vertical: 'middle', horizontal: 'center' };
+                const stockInCell = row.getCell('stockIn');
+                const stockOutCell = row.getCell('stockOut');
 
-                if (quantityCell.value && (quantityCell.value as number) > 0) {
-                    quantityCell.font = { bold: true, color: { argb: 'FF008000' } };
-                    quantityCell.value = `+${quantityCell.value}`;
-                } else {
-                    quantityCell.font = { bold: true, color: { argb: 'FFC00000' } };
+                // Center align all three
+                typeCell.alignment = { vertical: 'middle', horizontal: 'center' };
+                stockInCell.alignment = { vertical: 'middle', horizontal: 'center' };
+                stockOutCell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+                // Color code the 'Stock In' column
+                if (stockInCell.value && (stockInCell.value as number) > 0) {
+                    stockInCell.font = { bold: true, color: { argb: 'FF008000' } }; // Green
+                    stockInCell.value = `+${stockInCell.value}`;
+                }
+
+                // Color code the 'Stock Out' column
+                if (stockOutCell.value && (stockOutCell.value as number) > 0) {
+                    stockOutCell.font = { bold: true, color: { argb: 'FFC00000' } }; // Red
+                    stockOutCell.value = `-${stockOutCell.value}`;
                 }
             }
         });
