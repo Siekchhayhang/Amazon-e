@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { getAllStockMovements } from '@/lib/actions/stock.actions';
+import { getStockMovements } from '@/lib/actions/stock.actions';
 import { formatDateTime } from '@/lib/utils';
 import ExcelJS from 'exceljs';
 import { NextResponse } from 'next/server';
@@ -25,7 +25,7 @@ export async function GET() {
             return new NextResponse('Access Denied', { status: 403 });
         }
 
-        const result = await getAllStockMovements();
+        const result = await getStockMovements({ all: true });
         const movements = result.data;
 
         const workbook = new ExcelJS.Workbook();

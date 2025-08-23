@@ -4,47 +4,44 @@ import { connectToDatabase } from "@/lib/db";
 import StockMovement from "@/lib/db/models/stockMovement.model";
 import { getSetting } from "./setting.actions";
 
-export async function getStockMovements({ page = 1 }: { page?: number }) {
+export async function getStockMovements({
+    page = 1,
+    all = false // Add a new parameter to fetch all records
+}: {
+    page?: number;
+    all?: boolean;
+}) {
     try {
         await connectToDatabase();
 
-        const {
-            common: { pageSize },
-        } = await getSetting();
-        const limit = pageSize;
-        const skipAmount = (page - 1) * limit;
-
-        const movements = await StockMovement.find({})
-            .populate('product', 'name slug') // Get product name and slug
-            .populate('initiatedBy', 'name') // Get the user's name
-            .sort({ createdAt: -1 })
-            .skip(skipAmount)
-            .limit(limit);
-
-        const totalMovements = await StockMovement.countDocuments();
-
-        return {
-            data: JSON.parse(JSON.stringify(movements)),
-            totalPages: Math.ceil(totalMovements / limit),
-        };
-    } catch (error) {
-        console.error("Failed to fetch stock movements:", error);
-        return { data: [], totalPages: 0 };
-    }
-}
-
-// --- NEW ACTION: Get ALL stock movements for a report ---
-export async function getAllStockMovements() {
-    try {
-        await connectToDatabase();
-        const movements = await StockMovement.find({})
-            .populate('product', 'name')
+        const query = StockMovement.find({})
+            .populate('product', 'name slug')
             .populate('initiatedBy', 'name')
             .sort({ createdAt: -1 });
 
-        return { data: JSON.parse(JSON.stringify(movements)) };
+        if (all) {
+            // If 'all' is true, we don't paginate
+            const movements = await query;
+            return {
+                data: JSON.parse(JSON.stringify(movements)),
+                totalPages: 1, // Not relevant for full export
+            };
+        } else {
+            // If 'all' is false, we apply pagination for the web report
+            const { common: { pageSize } } = await getSetting();
+            const limit = pageSize;
+            const skipAmount = (page - 1) * limit;
+
+            const movements = await query.skip(skipAmount).limit(limit);
+            const totalMovements = await StockMovement.countDocuments();
+
+            return {
+                data: JSON.parse(JSON.stringify(movements)),
+                totalPages: Math.ceil(totalMovements / limit),
+            };
+        }
     } catch (error) {
-        console.error("Failed to fetch all stock movements:", error);
-        return { data: [] };
+        console.error("Failed to fetch stock movements:", error);
+        return { data: [], totalPages: 0 };
     }
 }
