@@ -13,6 +13,7 @@ import { formatDateTime } from "@/lib/utils";
 import ProductPrice from "@/components/shared/product/product-price";
 import { IOrderList } from "@/types";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 // This is a Server Component, so it's clean and efficient
 export default async function SaleDashboard() {
@@ -43,6 +44,8 @@ export default async function SaleDashboard() {
                 <TableHead>Buyer</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Total</TableHead>
+                <TableHead>Paid</TableHead>
+                <TableHead>Delivered</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -57,6 +60,20 @@ export default async function SaleDashboard() {
                   </TableCell>
                   <TableCell>
                     <ProductPrice price={order.totalPrice} plain />
+                  </TableCell>
+                  <TableCell>
+                    {order.isPaid ? (
+                      <Badge variant="default">Yes</Badge>
+                    ) : (
+                      <Badge variant="destructive">No</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {order.isDelivered ? (
+                      <Badge variant="default">Yes</Badge>
+                    ) : (
+                      <Badge variant="destructive">No</Badge>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Link href={`/admin/orders/${order._id}`}>
