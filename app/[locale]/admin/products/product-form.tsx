@@ -113,7 +113,7 @@ const ProductForm = ({
         toast({ description: res.message });
         setRestockQuantity(0);
         setRestockReason("");
-        router.refresh();
+        router.push("/admin/products");
       } else {
         toast({ variant: "destructive", description: res.message });
       }
@@ -145,7 +145,7 @@ const ProductForm = ({
     } else {
       toast({ description: res.message });
       if (res.message?.includes("approval")) {
-        router.refresh();
+        router.push(`/admin/products`);
       } else {
         router.push(`/admin/products`);
       }
