@@ -41,7 +41,6 @@ export default async function OrdersPage(props: {
     query,
   });
 
-  // Fetch the map of pending requests
   const pendingRequestsMap = await getPendingOrderRequestsMap();
 
   return (
@@ -64,8 +63,13 @@ export default async function OrdersPage(props: {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.data.length > 0 ? (
-              orders.data.map((order: IOrderList) => (
+            {orders.data.map((order: IOrderList) => {
+              // Get the list of all pending request types for this order
+              const pendingRequestTypes = pendingRequestsMap[order._id] || [];
+              // Determine if the row should be locked (if any request is pending)
+              const isLocked = pendingRequestTypes.length > 0;
+
+              return (
                 <TableRow key={order._id}>
                   <TableCell>{formatId(order._id)}</TableCell>
                   <TableCell>
@@ -78,10 +82,9 @@ export default async function OrdersPage(props: {
                     <ProductPrice price={order.totalPrice} plain />
                   </TableCell>
 
-                  {/* This component now handles the Paid/Delivered columns and disables buttons if a request is pending */}
                   <OrderStatusActions
                     order={order}
-                    pendingRequestType={pendingRequestsMap[order._id]}
+                    pendingRequestTypes={pendingRequestTypes}
                     userRole={userRole}
                   />
 
@@ -90,30 +93,26 @@ export default async function OrdersPage(props: {
                       <Link href={`/admin/orders/${order._id}`}>Details</Link>
                     </Button>
 
-                    {/* Admin sees a normal delete button */}
-                    {userRole === "Admin" && (
-                      <DeleteDialog id={order._id} action={deleteOrder} />
-                    )}
-
-                    {/* Sale user sees a conditional button */}
-                    {userRole === "Sale" &&
-                      (pendingRequestsMap[order._id] === "DELETE_ORDER" ? (
+                    {/* This is the final, correct logic for the Delete button */}
+                    {(userRole === "Admin" || userRole === "Sale") &&
+                      // If a DELETE request is specifically pending, show the "Pending" button
+                      (pendingRequestTypes.includes("DELETE_ORDER") &&
+                      userRole !== "Admin" ? (
                         <Button size="sm" variant="destructive" disabled>
                           Pending
                         </Button>
                       ) : (
-                        <DeleteDialog id={order._id} action={deleteOrder} />
+                        // Otherwise, show the dialog but disable it if the row is locked by another action
+                        <DeleteDialog
+                          id={order._id}
+                          action={deleteOrder}
+                          disabled={isLocked && userRole !== "Admin"}
+                        />
                       ))}
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center">
-                  No orders found.
-                </TableCell>
-              </TableRow>
-            )}
+              );
+            })}
           </TableBody>
         </Table>
         {orders.totalPages > 1 && (

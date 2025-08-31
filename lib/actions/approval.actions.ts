@@ -18,15 +18,18 @@ export async function getPendingOrderRequestsMap() {
     await connectToDatabase();
     const requests = await ApprovalRequest.find({
         status: 'pending',
-        // Find all types related to orders
         type: { $in: ['MARK_AS_PAID', 'MARK_AS_DELIVERED', 'DELETE_ORDER'] }
-    }).select('targetId type'); // Select only the fields we need
+    }).select('targetId type');
 
-    // Create a simple map for easy lookup: { orderId: 'REQUEST_TYPE' }
-    const pendingMap: { [key: string]: string } = {};
+    // This map will now hold an array of strings for each ID: { orderId: ['TYPE_1', 'TYPE_2'] }
+    const pendingMap: { [key: string]: string[] } = {};
     requests.forEach(req => {
         if (req.targetId) {
-            pendingMap[req.targetId.toString()] = req.type;
+            const id = req.targetId.toString();
+            if (!pendingMap[id]) {
+                pendingMap[id] = []; // Initialize the array if it doesn't exist
+            }
+            pendingMap[id].push(req.type); // Push the type into the array
         }
     });
     return pendingMap;

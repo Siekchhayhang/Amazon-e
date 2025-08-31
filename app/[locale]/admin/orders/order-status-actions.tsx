@@ -14,16 +14,15 @@ import { TableCell } from "@/components/ui/table";
 
 type Props = {
   order: IOrderList;
-  pendingRequestType?: string;
+  pendingRequestTypes?: string[];
   userRole: string;
 };
 
 export default function OrderStatusActions({
   order,
-  pendingRequestType,
+  pendingRequestTypes,
   userRole,
 }: Props) {
-  // 👇 These lines were missing
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const { toast } = useToast();
@@ -37,24 +36,23 @@ export default function OrderStatusActions({
 
       if (res.success) {
         toast({ description: res.message });
-        router.refresh(); // Refresh the page to show the updated status
+        router.refresh();
       } else {
         toast({ variant: "destructive", description: "An error occurred." });
       }
     });
   };
-  // 👆 The logic above was missing
-
-  const isPaidActionPending = pendingRequestType === "MARK_AS_PAID";
-  const isDeliveredActionPending = pendingRequestType === "MARK_AS_DELIVERED";
+  const isPaidPending = pendingRequestTypes?.includes("MARK_AS_PAID");
+  const isDeliveredPending = pendingRequestTypes?.includes("MARK_AS_DELIVERED");
+  // Check if the row is locked by ANY pending request
+  const isLocked = (pendingRequestTypes?.length || 0) > 0;
 
   return (
     <>
       <TableCell>
-        {/* 👇 This is the corrected logic */}
         {order.isPaid ? (
           formatDateTime(order.paidAt!).dateTime
-        ) : isPaidActionPending && userRole !== "Admin" ? (
+        ) : isPaidPending && userRole !== "Admin" ? (
           <Button size="sm" disabled>
             Pending Approval
           </Button>
@@ -62,17 +60,16 @@ export default function OrderStatusActions({
           <Button
             size="sm"
             onClick={() => handleAction("paid")}
-            disabled={isPending}
+            disabled={isPending || (isLocked && userRole !== "Admin")}
           >
             {isPending ? "Processing..." : "Mark as Paid"}
           </Button>
         )}
       </TableCell>
       <TableCell>
-        {/* 👇 This is the corrected logic */}
         {order.isDelivered ? (
           formatDateTime(order.deliveredAt!).dateTime
-        ) : isDeliveredActionPending && userRole !== "Admin" ? (
+        ) : isDeliveredPending && userRole !== "Admin" ? (
           <Button size="sm" disabled>
             Pending Approval
           </Button>
@@ -80,7 +77,7 @@ export default function OrderStatusActions({
           <Button
             size="sm"
             onClick={() => handleAction("delivered")}
-            disabled={isPending}
+            disabled={isPending || (isLocked && userRole !== "Admin")}
           >
             {isPending ? "Processing..." : "Mark as Delivered"}
           </Button>
