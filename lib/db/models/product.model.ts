@@ -5,6 +5,8 @@ export interface IProduct extends Document, IProductInput {
   _id: string
   createdAt: Date
   updatedAt: Date
+  isDeleted?: boolean
+  deletedAt?: Date | null
 }
 
 const productSchema = new Schema<IProduct>(
@@ -77,6 +79,15 @@ const productSchema = new Schema<IProduct>(
       type: Boolean,
       required: true,
       default: false,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
     },
     reviews: [
       {

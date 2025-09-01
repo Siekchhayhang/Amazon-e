@@ -110,7 +110,10 @@ export async function deleteProduct(id: string) {
     await connectToDatabase();
 
     if (userRole === 'Admin') {
-      const res = await Product.findByIdAndDelete(id);
+      const res = await Product.findByIdAndUpdate(id, {
+        isDeleted: true,
+        deletedAt: new Date(),
+      });
       if (!res) throw new Error('Product not found');
       revalidatePath('/admin/products');
       return { success: true, message: 'Product deleted successfully' };
@@ -240,7 +243,7 @@ export async function getAllProductsForAdmin({
   const skipAmount = (Number(page) - 1) * limit;
 
   const queryFilter = query ? { name: { $regex: query, $options: 'i' } } : {}
-
+  const softDeleteFilter = { isDeleted: { $ne: true } };
   // 2. Re-implement the sorting logic
   const order: Record<string, 1 | -1> =
     sort === 'best-selling'
@@ -274,7 +277,10 @@ export async function getAllProductsForAdmin({
     slug: req.payload.slug,
   }));
 
-  const products = await Product.find(queryFilter)
+  const products = await Product.find({
+    ...softDeleteFilter,
+    ...queryFilter
+  })
     .sort(order) // 4. Apply the sort order to the query
     .skip(skipAmount)
     .limit(limit)
@@ -296,7 +302,7 @@ export async function getAllProductsForAdmin({
 
 export async function getAllCategories() {
   await connectToDatabase()
-  const categories = await Product.find({ isPublished: true }).distinct(
+  const categories = await Product.find({ isPublished: true, isDeleted: { $ne: true } }).distinct(
     'category'
   )
   return categories
@@ -310,7 +316,7 @@ export async function getProductsForCard({
 }) {
   await connectToDatabase()
   const products = await Product.find(
-    { tags: { $in: [tag] }, isPublished: true },
+    { tags: { $in: [tag] }, isPublished: true, isDeleted: { $ne: true } },
     {
       name: 1,
       href: { $concat: ['/product/', '$slug'] },
@@ -337,6 +343,7 @@ export async function getProductsByTag({
   const products = await Product.find({
     tags: { $in: [tag] },
     isPublished: true,
+    isDeleted: { $ne: true }
   })
     .sort({ createdAt: 'desc' })
     .limit(limit)
@@ -346,7 +353,7 @@ export async function getProductsByTag({
 // GET ONE PRODUCT BY SLUG
 export async function getProductBySlug(slug: string) {
   await connectToDatabase()
-  const product = await Product.findOne({ slug, isPublished: true })
+  const product = await Product.findOne({ slug, isPublished: true, isDeleted: { $ne: true } })
   if (!product) throw new Error('Product not found')
   return JSON.parse(JSON.stringify(product)) as IProduct
 }
@@ -372,6 +379,7 @@ export async function getRelatedProductsByCategory({
     isPublished: true,
     category,
     _id: { $ne: productId },
+    isDeleted: { $ne: true }
   }
   const products = await Product.find(conditions)
     .sort({ numSales: 'desc' })
@@ -453,6 +461,7 @@ export async function getAllProducts({
   const isPublished = { isPublished: true }
   const products = await Product.find({
     ...isPublished,
+    isDeleted: { $ne: true },
     ...queryFilter,
     ...tagFilter,
     ...categoryFilter,
@@ -482,6 +491,7 @@ export async function getAllProducts({
 
 export async function getAllTags() {
   const tags = await Product.aggregate([
+    { $match: { isDeleted: { $ne: true }, isPublished: true } }, // Hide tags from soft-deleted/unpublished products
     { $unwind: '$tags' },
     { $group: { _id: null, uniqueTags: { $addToSet: '$tags' } } },
     { $project: { _id: 0, uniqueTags: 1 } },
@@ -503,7 +513,7 @@ export async function getProductOrPendingData(id: string) {
   await connectToDatabase();
 
   // First, try to find a real product
-  const product = await Product.findById(id);
+  const product = await Product.findOne({ _id: id, isDeleted: { $ne: true } });
   if (product) {
     return {
       data: JSON.parse(JSON.stringify(product)),
@@ -532,4 +542,40 @@ export async function getProductOrPendingData(id: string) {
   }
 
   return null; // If neither is found
+}
+
+// --- NEW ACTION: Get all soft-deleted products ---
+export async function getDeletedProducts() {
+  await connectToDatabase();
+  const deletedProducts = await Product.find({ isDeleted: true })
+    .sort({ deletedAt: -1 });
+  return JSON.parse(JSON.stringify(deletedProducts));
+}
+
+// --- NEW ACTION: Restore a soft-deleted product ---
+export async function restoreProduct(productId: string) {
+  try {
+    await connectToDatabase();
+    await Product.findByIdAndUpdate(productId, {
+      isDeleted: false,
+      deletedAt: null,
+    });
+    revalidatePath('/admin/products/trash');
+    revalidatePath('/admin/products');
+    return { success: true, message: 'Product restored successfully.' };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// --- NEW ACTION: Get the count of soft-deleted products ---
+export async function getDeletedProductsCount() {
+  try {
+    await connectToDatabase();
+    const count = await Product.countDocuments({ isDeleted: true });
+    return count;
+  } catch (error) {
+    console.error("Failed to fetch deleted products count:", error);
+    return 0;
+  }
 }

@@ -36,6 +36,10 @@ const links = [
     href: "/admin/web-pages",
   },
   {
+    title: "Trash Bin",
+    href: "/admin/trash",
+  },
+  {
     title: "Settings",
     href: "/admin/settings",
   },

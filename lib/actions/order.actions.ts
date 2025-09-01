@@ -17,6 +17,7 @@ import { getSetting } from './setting.actions'
 import { MONGODB_URI } from '../constants'
 import ApprovalRequest from '../db/models/approvalRequest.model'
 import StockMovement from '../db/models/stockMovement.model'
+import { getDeletedProductsCount } from './product.actions';
 
 
 // CREATE
@@ -505,6 +506,7 @@ export async function getOrderSummary(date: DateRange) {
   const pendingApprovalsCount = await ApprovalRequest.countDocuments({
     status: 'pending',
   });
+  const deletedProductsCount = await getDeletedProductsCount();
 
   return {
     ordersCount,
@@ -517,6 +519,7 @@ export async function getOrderSummary(date: DateRange) {
     topSalesProducts: JSON.parse(JSON.stringify(topSalesProducts)),
     latestOrders: JSON.parse(JSON.stringify(latestOrders)) as IOrderList[],
     pendingApprovalsCount,
+    deletedProductsCount,
   }
 }
 
