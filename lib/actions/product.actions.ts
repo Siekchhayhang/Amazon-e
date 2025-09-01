@@ -573,12 +573,19 @@ export async function restoreProduct(productId: string) {
     }
 
     if (userRole === 'Stocker') {
+      // Stocker logic is now smarter
+      const productToRestore = await Product.findById(productId);
+      if (!productToRestore) throw new Error('Product to restore not found.');
       await ApprovalRequest.create({
         requestedBy: userId,
         type: 'REQUEST_RESTORE',
         targetId: productId,
-        payload: { note: `Request to restore product ${productId}` },
+        payload: {
+          productName: productToRestore.name,
+          note: `Request to restore product ${productId}`
+        },
       });
+      revalidatePath('/admin/trash');
       return { success: true, message: 'Restore request submitted for admin approval.' };
     }
 

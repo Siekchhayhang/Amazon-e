@@ -72,7 +72,19 @@ export default function ApprovalPayload({
                   Request to mark order as Delivered
                 </span>
               );
+            case "REQUEST_RESTORE":
+              return (
+                <DetailItem
+                  label="Request to restore product"
+                  value={payload.productName}
+                />
+              );
             case "DELETE_ORDER":
+              return (
+                <span className="text-sm italic text-destructive">
+                  Request to Delete Item
+                </span>
+              );
             case "DELETE_PRODUCT":
               return (
                 <span className="text-sm italic text-destructive">

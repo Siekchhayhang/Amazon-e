@@ -5,7 +5,13 @@ import { restoreProduct } from "@/lib/actions/product.actions";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
-export default function RestoreButton({ productId }: { productId: string }) {
+export default function RestoreButton({
+  productId,
+  isRestorePending,
+}: {
+  productId: string;
+  isRestorePending: boolean;
+}) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const { toast } = useToast();
@@ -21,6 +27,14 @@ export default function RestoreButton({ productId }: { productId: string }) {
       }
     });
   };
+
+  if (isRestorePending) {
+    return (
+      <Button disabled size="sm">
+        Pending Approval
+      </Button>
+    );
+  }
 
   return (
     <Button onClick={handleRestore} disabled={isPending} size="sm">

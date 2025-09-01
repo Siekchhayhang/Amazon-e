@@ -190,3 +190,15 @@ export async function isDuplicateCreateRequestPending(slug: string) {
     });
     return !!request; // Returns true if a duplicate is pending
 }
+
+// --- NEW ACTION: Get IDs of products with pending restore requests ---
+export async function getPendingRestoreRequestIds() {
+    await connectToDatabase();
+    const requests = await ApprovalRequest.find({
+        type: 'REQUEST_RESTORE',
+        status: 'pending',
+    }).select('targetId');
+
+    // Return an array of string IDs
+    return requests.map(req => req.targetId.toString());
+}

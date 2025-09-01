@@ -13,6 +13,7 @@ import RestoreButton from "./restore-button";
 import { IProduct } from "@/lib/db/models/product.model";
 import AccessDeniedPage from "../access-denied/page";
 import { auth } from "@/auth";
+import { getPendingRestoreRequestIds } from "@/lib/actions/approval.actions";
 
 export const metadata: Metadata = {
   title: "Deleted Products",
@@ -26,6 +27,7 @@ export default async function TrashPage() {
   }
 
   const deletedProducts: IProduct[] = await getDeletedProducts();
+  const pendingRestoreIds = await getPendingRestoreRequestIds();
 
   return (
     <div className="space-y-4">
@@ -39,17 +41,24 @@ export default async function TrashPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {deletedProducts.map((product: IProduct) => (
-            <TableRow key={product._id}>
-              <TableCell>{product.name}</TableCell>
-              <TableCell>
-                {formatDateTime(new Date(product.deletedAt!)).dateTime}
-              </TableCell>
-              <TableCell>
-                <RestoreButton productId={product._id} />
-              </TableCell>
-            </TableRow>
-          ))}
+          {deletedProducts.map((product: IProduct) => {
+            const isRestorePending = pendingRestoreIds.includes(product._id);
+            return (
+              <TableRow key={product._id}>
+                <TableCell>{product.name}</TableCell>
+                <TableCell>
+                  {formatDateTime(new Date(product.deletedAt!)).dateTime}
+                </TableCell>
+                <TableCell>
+                  {/* Pass the pending status to the button */}
+                  <RestoreButton
+                    productId={product._id}
+                    isRestorePending={isRestorePending}
+                  />
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>
