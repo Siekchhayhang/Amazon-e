@@ -19,7 +19,7 @@ const ApprovalRequestSchema = new Schema<IApprovalRequest>({
     type: {
         type: String, enum: ['CREATE_PRODUCT', 'UPDATE_PRODUCT', 'UPDATE_PRODUCT_STOCK', 'UPDATE_ORDER_STATUS', 'MARK_AS_PAID',
             'MARK_AS_DELIVERED',
-            'DELETE_ORDER', 'DELETE_PRODUCT', 'REQUEST_RESTOCK',], required: true
+            'DELETE_ORDER', 'DELETE_PRODUCT', 'REQUEST_RESTOCK', 'REQUEST_RESTORE'], required: true
     },
     targetId: { type: Schema.Types.ObjectId },
     payload: { type: Schema.Types.Mixed, required: true },

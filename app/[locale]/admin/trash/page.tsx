@@ -11,12 +11,20 @@ import {
 import { formatDateTime } from "@/lib/utils";
 import RestoreButton from "./restore-button";
 import { IProduct } from "@/lib/db/models/product.model";
+import AccessDeniedPage from "../access-denied/page";
+import { auth } from "@/auth";
 
 export const metadata: Metadata = {
   title: "Deleted Products",
 };
 
 export default async function TrashPage() {
+  const session = await auth();
+  const userRole = session?.user?.role;
+  if (userRole !== "Admin" && userRole !== "Stocker") {
+    return <AccessDeniedPage />;
+  }
+
   const deletedProducts: IProduct[] = await getDeletedProducts();
 
   return (

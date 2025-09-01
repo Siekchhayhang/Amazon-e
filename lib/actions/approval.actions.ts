@@ -131,6 +131,12 @@ export async function processRequest(requestId: string, action: 'approve' | 'rej
                         initiatedBy: request.requestedBy,
                     });
                     break;
+                case 'REQUEST_RESTORE':
+                    await Product.findByIdAndUpdate(request.targetId, {
+                        isDeleted: false,
+                        deletedAt: null,
+                    });
+                    break;
             }
             request.status = 'approved';
             if (updatedProductSlug) {
@@ -144,6 +150,7 @@ export async function processRequest(requestId: string, action: 'approve' | 'rej
         revalidatePath('/admin/approvals');
         revalidatePath('/admin/orders');
         revalidatePath('/admin/products');
+        revalidatePath('/admin/trash');
         return { success: true, message: `Request has been ${action}d.` };
 
     } catch (error) {

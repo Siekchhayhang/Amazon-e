@@ -555,14 +555,34 @@ export async function getDeletedProducts() {
 // --- NEW ACTION: Restore a soft-deleted product ---
 export async function restoreProduct(productId: string) {
   try {
+    const session = await auth();
+    const userRole = session?.user?.role;
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('User not authenticated.');
+
     await connectToDatabase();
-    await Product.findByIdAndUpdate(productId, {
-      isDeleted: false,
-      deletedAt: null,
-    });
-    revalidatePath('/admin/products/trash');
-    revalidatePath('/admin/products');
-    return { success: true, message: 'Product restored successfully.' };
+
+    if (userRole === 'Admin') {
+      await Product.findByIdAndUpdate(productId, {
+        isDeleted: false,
+        deletedAt: null,
+      });
+      revalidatePath('/admin/trash');
+      revalidatePath('/admin/products');
+      return { success: true, message: 'Product restored successfully.' };
+    }
+
+    if (userRole === 'Stocker') {
+      await ApprovalRequest.create({
+        requestedBy: userId,
+        type: 'REQUEST_RESTORE',
+        targetId: productId,
+        payload: { note: `Request to restore product ${productId}` },
+      });
+      return { success: true, message: 'Restore request submitted for admin approval.' };
+    }
+
+    throw new Error('You do not have permission to perform this action.');
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
