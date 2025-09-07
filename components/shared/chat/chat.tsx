@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import AIBotAnimation from "@/public/ai-bot.json";
 import Lottie from "lottie-react";
-import { X } from "lucide-react";
+import { X, Bell, BellOff } from "lucide-react";
 import ReactMarkDown from "react-markdown";
 import { FormEvent, useEffect, useState, useRef } from "react";
 
@@ -19,6 +19,13 @@ export default function Chat() {
   const [error, setError] = useState<Error | null>(null);
   const [prompts, setPrompts] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio("/sounds/notification.mp3");
+  }, []);
 
   // Function to auto-scroll to the bottom of the messages
   const scrollToBottom = () => {
@@ -43,6 +50,10 @@ export default function Chat() {
 
       if (!res.body) throw new Error("No response body");
       if (!res.ok) throw new Error(`API error: ${res.statusText}`);
+
+      if (isSoundEnabled && audioRef.current) {
+        audioRef.current.play();
+      }
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -141,6 +152,20 @@ export default function Chat() {
             <Button
               variant="ghost"
               size="icon"
+              onClick={() => setIsSoundEnabled((prev) => !prev)}
+              aria-label={isSoundEnabled ? "Disable sound" : "Enable sound"}
+              title={isSoundEnabled ? "Disable sound" : "Enable sound"}
+            >
+              {isSoundEnabled ? (
+                <Bell className="h-5 w-5" />
+              ) : (
+                <BellOff className="h-5 w-5 text-gray-400" />
+              )}
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={toggleChat}
               aria-label="Close chat"
             >
@@ -162,9 +187,7 @@ export default function Chat() {
                       : "bg-gray-100 text-gray-900 dark:bg-slate-700 dark:text-white rounded-bl-none"
                   }`}
                 >
-                  <ReactMarkDown className="prose prose-sm dark:prose-invert max-w-none">
-                    {m.content}
-                  </ReactMarkDown>
+                  <ReactMarkDown>{m.content}</ReactMarkDown>
                 </div>
               </div>
             ))}
