@@ -77,7 +77,7 @@ export async function POST(req: Request) {
   const { messages } = await req.json();
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-pro',
+    model: 'gemini-2.0-flash',
     tools: [{ functionDeclarations: tools }],
   });
   const chat = model.startChat();

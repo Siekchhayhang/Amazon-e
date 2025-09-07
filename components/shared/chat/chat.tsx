@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import AIBotAnimation from "@/public/ai-bot.json";
 import Lottie from "lottie-react";
 import { X } from "lucide-react";
+import ReactMarkDown from "react-markdown";
 import { FormEvent, useEffect, useState, useRef } from "react";
 
 interface Message {
@@ -161,7 +162,9 @@ export default function Chat() {
                       : "bg-gray-100 text-gray-900 dark:bg-slate-700 dark:text-white rounded-bl-none"
                   }`}
                 >
-                  {m.content}
+                  <ReactMarkDown className="prose prose-sm dark:prose-invert max-w-none">
+                    {m.content}
+                  </ReactMarkDown>
                 </div>
               </div>
             ))}
