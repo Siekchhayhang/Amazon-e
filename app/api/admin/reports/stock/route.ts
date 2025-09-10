@@ -28,6 +28,13 @@ export async function GET() {
         const result = await getStockMovements({ all: true });
         const movements = result.data;
 
+        // 1. Calculate the totals before creating the report
+        const totals = movements.reduce(({ acc, item }: { acc: { stockIn: number; stockOut: number; }; item: MovementItem; }) => {
+            acc.stockIn += item.stockIn || 0;
+            acc.stockOut += item.stockOut || 0;
+            return acc;
+        }, { stockIn: 0, stockOut: 0 });
+
         const workbook = new ExcelJS.Workbook();
         workbook.creator = 'Collection Online Shop';
         workbook.created = new Date();
@@ -37,8 +44,8 @@ export async function GET() {
             { header: 'Date', key: 'date', width: 25 },
             { header: 'Product', key: 'product', width: 40 },
             { header: 'Type', key: 'type', width: 15 },
-            { header: 'Stock In', key: 'stockIn', width: 15 },
-            { header: 'Stock Out', key: 'stockOut', width: 15 },
+            { header: 'Stock In', key: 'stockIn', width: 15, style: { numFmt: '#,##0' } },
+            { header: 'Stock Out', key: 'stockOut', width: 15, style: { numFmt: '#,##0' } },
             { header: 'Reason / Order ID', key: 'reason', width: 35 },
             { header: 'Initiated By', key: 'user', width: 25 },
         ];
@@ -91,6 +98,25 @@ export async function GET() {
                     stockOutCell.value = `-${stockOutCell.value}`;
                 }
             }
+        });
+
+        // 2. Add a blank row and the total row at the end
+        sheet.addRow([]); // Blank row for spacing
+        const totalRow = sheet.addRow({
+            type: 'Totals',
+            stockIn: totals.stockIn,
+            stockOut: totals.stockOut,
+        });
+
+        // 3. Style the total row for a professional look
+        totalRow.font = { bold: true, size: 12 };
+        totalRow.getCell('type').alignment = { horizontal: 'right' };
+        const totalStockInCell = totalRow.getCell('stockIn');
+        const totalStockOutCell = totalRow.getCell('stockOut');
+        totalStockInCell.font = { bold: true, size: 12, color: { argb: 'FF008000' } }; // Green
+        totalStockOutCell.font = { bold: true, size: 12, color: { argb: 'FFC00000' } }; // Red
+        totalRow.eachCell((cell) => {
+            cell.border = { top: { style: 'medium' } };
         });
 
         const buffer = await workbook.xlsx.writeBuffer();

@@ -10,7 +10,6 @@ import {
   getTopSellingProducts,
 } from '@/lib/actions/ai.actions';
 import { NextResponse } from 'next/server';
-
 import { GOOGLE_API_KEY } from '@/lib/constants';
 import { getAllProducts } from '@/lib/actions/product.actions';
 
