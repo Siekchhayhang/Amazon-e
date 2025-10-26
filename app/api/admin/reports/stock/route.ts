@@ -26,14 +26,17 @@ export async function GET() {
         }
 
         const result = await getStockMovements({ all: true });
-        const movements = result.data;
+        const movements: MovementItem[] = result.data ?? [];
 
         // 1. Calculate the totals before creating the report
-        const totals = movements.reduce(({ acc, item }: { acc: { stockIn: number; stockOut: number; }; item: MovementItem; }) => {
-            acc.stockIn += item.stockIn || 0;
-            acc.stockOut += item.stockOut || 0;
-            return acc;
-        }, { stockIn: 0, stockOut: 0 });
+        const totals = movements.reduce(
+            (acc: { stockIn: number; stockOut: number; }, item: MovementItem) => {
+                acc.stockIn += item.stockIn || 0;
+                acc.stockOut += item.stockOut || 0;
+                return acc;
+            },
+            { stockIn: 0, stockOut: 0 },
+        );
 
         const workbook = new ExcelJS.Workbook();
         workbook.creator = 'Collection Online Shop';
