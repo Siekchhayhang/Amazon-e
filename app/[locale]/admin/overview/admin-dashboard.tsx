@@ -6,6 +6,7 @@ import {
   Users,
   ShieldCheck,
   Trash2,
+  Package,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
@@ -97,6 +98,7 @@ export default function AdminDashboard() {
       <DashboardHeader title={t("Dashboard")} date={date} setDate={setDate} />
       <div className="space-y-4">
         <div className="grid gap-4  grid-cols-2 lg:grid-cols-4">
+          {/* 👇 THIS NEW CARD FOR THE TOTAL REVENUE */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -115,6 +117,7 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+          {/* 👇 THIS NEW CARD FOR THE SALES */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -133,6 +136,7 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+          {/* 👇 THIS NEW CARD FOR THE CUSTOMERS */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -171,6 +175,7 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+          {/* 👇 THIS NEW CARD FOR THE VIEW PRODUCTS */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -183,6 +188,23 @@ export default function AdminDashboard() {
               <div>
                 <Link className="text-xs" href="/admin/products">
                   {t("View products")}
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+          {/* 👇 THIS NEW CARD FOR THE STOCK */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t("Stocks")}
+              </CardTitle>
+              <Package className="text-gray-500" />
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="text-2xl font-bold">{data.countInStock}</div>
+              <div>
+                <Link className="text-xs" href="/admin/reports/stock">
+                  {t("View Stock Movement")}
                 </Link>
               </div>
             </CardContent>

@@ -1,8 +1,10 @@
 import type { NextConfig } from 'next'
-import withNextIntl from 'next-intl/plugin'
+import createNextIntlPlugin from 'next-intl/plugin'
 
-const nextConfig: NextConfig = withNextIntl()({
-  /* config options here */
+// Explicitly point to your request file
+const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
+
+const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
@@ -12,6 +14,6 @@ const nextConfig: NextConfig = withNextIntl()({
       },
     ],
   },
-})
+}
 
-export default nextConfig
+export default withNextIntl(nextConfig)

@@ -1,5 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import "../globals.css";
+import "@/app/globals.css";
 import SessionProvider from "@/components/shared/client-providers";
 import { getDirection } from "@/i18n-config";
 import { NextIntlClientProvider } from "next-intl";
@@ -41,7 +41,7 @@ export default async function AppLayout({
   params,
   children,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
   children: React.ReactNode;
 }) {
   const setting = await getSetting();
@@ -64,6 +64,7 @@ export default async function AppLayout({
     >
       <body
         className={`min-h-screen ${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning={true}
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
           <SessionProvider setting={{ ...setting, currency }}>

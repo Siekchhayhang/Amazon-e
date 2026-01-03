@@ -132,9 +132,11 @@ export default async function StockReportPage(props: {
             )}
           </TableBody>
         </Table>
-        {result.totalPages > 1 && (
-          <Pagination page={String(page)} totalPages={result.totalPages} />
-        )}
+        {result.totalPages !== 0
+          ? result.totalPages > 1 && (
+              <Pagination page={String(page)} totalPages={result.totalPages} />
+            )
+          : null}
       </div>
     </div>
   );

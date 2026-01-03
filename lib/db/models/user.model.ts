@@ -15,6 +15,8 @@ export interface IUser extends Document, IUserInput {
   twoFactorSecret?: string;
   backupCodes?: string[];
   lastPasswordResetRequest?: Date | null;
+  failedLoginAttempts: number;
+  lockoutUntil?: Date;
 }
 
 const userSchema = new Schema<IUser>(
@@ -37,6 +39,8 @@ const userSchema = new Schema<IUser>(
       type: Date,
       default: null,
     },
+    failedLoginAttempts: { type: Number, default: 0 },
+    lockoutUntil: { type: Date },
 
   },
   {
