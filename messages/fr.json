@@ -192,9 +192,11 @@
     "Approval": "Approbation",
     "View customers": "Voir les clients",
     "View products": "Voir les produits",
-    "Stock Report": "Rapport de mouvement des stocks",
+    "Stock Report": "Rapport de stock",
     "Stocks": "Stocks",
+    "View Stock Movement": "Voir le mouvement des stocks",
     "Trash Bin": "Corbeille",
+    "View deleted items": "Voir les articles supprimés",
     "Sales Overview": "Aperçu des ventes",
     "How much you’re earning": "Combien gagnez-vous",
     "Estimated": "Estimé",
@@ -209,7 +211,9 @@
     "Actions": "Actions",
     "Details": "Détails",
     "Download Reports": "Télécharger le rapports",
-    "Revenue": "Revenu"
+    "Revenue": "Revenu",
+    "Pending Approval": "Approbation en attente",
+    "View requests": "Voir les demandes"
   },
   "VerifyEmail": {
     "title": "Vérifiez votre e-mail",

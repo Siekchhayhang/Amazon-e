@@ -201,7 +201,7 @@ export default function AdminDashboard() {
               <Package className="text-gray-500" />
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="text-2xl font-bold">{data.countInStock}</div>
+              <div className="text-2xl font-bold">{data.countInStock || 0}</div>
               <div>
                 <Link className="text-xs" href="/admin/reports/stock">
                   {t("View Stock Movement")}

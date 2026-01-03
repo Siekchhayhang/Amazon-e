@@ -197,9 +197,11 @@
     "Approval": "Approval",
     "View customers": "View customers",
     "View products": "View products",
-    "Stock Report": "Stock Movement Report",
+    "Stock Report": "Stock Report",
     "Stocks": "Stocks",
+    "View Stock Movement": "View Stock Movement",
     "Trash Bin": "Trash Bin",
+    "View deleted items": "View deleted items",
     "Sales Overview": "Sales Overview",
     "How much you’re earning": "How much you’re earning",
     "Estimated": "Estimated",
@@ -214,7 +216,9 @@
     "Actions": "Actions",
     "Details": "Details",
     "Download Reports": "Download Reports",
-    "Revenue": "Revenue"
+    "Revenue": "Revenue",
+    "Pending Approval": "Pending Approval",
+    "View requests": "View requests"
   },
   "ChangePassword": {
     "title": "Change Your Password",

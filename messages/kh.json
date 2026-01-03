@@ -199,7 +199,9 @@
     "View products": "មើលផលិតផល",
     "Stock Report": "របាយការណ៍ស្តុក",
     "Stocks": "ស្តុក",
+    "View Stock Movement": "មើលការផ្លាស់ប្តូរស្តុក",
     "Trash Bin": "ធុងសំរាម",
+    "View deleted items": "មើលវត្ថុដែលបានលុប",
     "Sales Overview": "ទិដ្ឋភាពទូទៅនៃការលក់",
     "How much you’re earning": "តើអ្នករកបានប៉ុន្មាន",
     "Estimated": "ប៉ាន់ស្មាន",
@@ -214,7 +216,9 @@
     "Actions": "សកម្មភាព",
     "Details": "ព័ត៌មានលម្អិត",
     "Download Reports": "ទាញយក របាយការណ៍",
-    "Revenue": "ចំណូល"
+    "Revenue": "ចំណូល",
+    "Pending Approval": "ការអនុម័តនៅកំពុងរង់ចាំ",
+    "View requests": "មើលសំណើ"
   },
   "ChangePassword": {
     "title": "ផ្លាស់ប្ដូរលេខសម្ងាត់របស់អ្នក",
