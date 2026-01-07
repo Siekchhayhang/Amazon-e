@@ -26,7 +26,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { calculatePastDate, formatDateTime, formatNumber } from "@/lib/utils";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 
 import SalesCategoryPieChart from "./sales-category-pie-chart";
 
