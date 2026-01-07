@@ -157,7 +157,7 @@ export default function AdminDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Pending Approvals
+                {t("Pending Approvals")}
               </CardTitle>
               <ShieldCheck className="text-blue-500" />
             </CardHeader>
@@ -170,7 +170,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <Link className="text-xs" href="/admin/approvals">
-                  View requests
+                  {t("View requests")}
                 </Link>
               </div>
             </CardContent>
@@ -212,7 +212,9 @@ export default function AdminDashboard() {
           {/* 👇 THIS NEW CARD FOR THE TRASH */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Trash Bin</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                {t("Trash Bin")}
+              </CardTitle>
               <Trash2 className="text-gray-500" />
             </CardHeader>
             <CardContent className="space-y-2">
@@ -221,7 +223,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <Link className="text-xs" href="/admin/trash">
-                  View deleted items
+                  {t("View deleted items")}
                 </Link>
               </div>
             </CardContent>
