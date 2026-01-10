@@ -4,7 +4,7 @@ import { APP_NAME } from "@/lib/constants";
 import data from "@/lib/data";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import Menu from "./menu";
 import Search from "./search";
 import Sidebar from "./sidebar";
