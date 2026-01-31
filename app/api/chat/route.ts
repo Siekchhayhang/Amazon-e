@@ -80,7 +80,7 @@ export async function POST(req: Request) {
   const lastMessageLower = lastMessage.toLowerCase();
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash-lite',
+    model: 'gemini-3-flash-preview',
     tools: [{ functionDeclarations: tools }],
     // 👇 1. Set the maximum reply length to 1000 tokens
     generationConfig: { maxOutputTokens: 1000 },
